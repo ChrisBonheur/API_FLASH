@@ -18,6 +18,11 @@ from academic_years.models import AcademicYear
 from academic_years.serializers import AcademicSerializer
 from api_flash.constantes import YEAR_ID_HEADER
 from api_flash.exceptions import CustomValidationError
+from django.http import HttpResponse
+from django.http import HttpResponse
+from django.contrib.auth import authenticate, login as lg
+from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
 
 
 class AgentViewsSet(ModelViewSet):
@@ -66,3 +71,17 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             else:
                 raise CustomValidationError("Information de connexion non valide !", 400)
         return response
+    
+
+@csrf_exempt
+def login(request):
+    username = request.POST.get('username')
+    password = request.POST.get('password')
+    user_chosed = request.POST.get('type_user')
+    user = authenticate(request, username=username, password=password)
+    agent = Agent.objects.filter(username=username)
+
+    if user and (int(user_chosed) == type_user.AGENT.value) and agent.exists() and agent[0].is_active:
+        lg(request, agent[0])
+        return redirect('/flashadministration/')  
+    return HttpResponse("Vous n'êtes pas habilité à consulter cette page. Prière de se rapprocher du SSE/FLASH pour en savoir d'avantage. Merci!")

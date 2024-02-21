@@ -56,6 +56,7 @@ class BoxAdmin(GlobalControl):
 
 class ChartOfAccountAdmin(GlobalControl):
     ordering = ('clase_number', )
+    
 
 class BundleAdmin(GlobalControl):
     pass
@@ -73,3 +74,4 @@ admin.site.register(PersonalClass, PersonalClassAdmin)
 admin.site.register(Box, BoxAdmin)
 admin.site.register(ChartOfAccount, ChartOfAccountAdmin)
 admin.site.register(Bundle, BundleAdmin)
+
