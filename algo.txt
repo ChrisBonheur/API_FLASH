@@ -1,0 +1,31 @@
+Ajouter un Agent 
+
+- verifie si l'email existe (dans tous les agents de toutes les annees) en recuperant un agent par l'email en question:
+	*si l'email existe et que si c'est une methode POST ou une methode PUT et si l'id de l'agent trouvé est != de l'id envoyé dans les data du PUT:
+			-on recupere l'id de l'annee dans les entetes
+			-on initialise AcademicYear grace a l'id recupere dans les entetes
+			-verfie si AcademicYear contient l'agent trouve dans la verification de l'email:
+					*si oui:
+						-renvoie juste un message de conflict avec 409
+					*si  non:
+						-verifier l'anne la plus recente où se trouve l'agent en question,
+						-s'il ya une annee renvoi un 452
+						-s'il y a aucune annee renvoie un 453
+
+	*sinon:
+		si c'est un post:
+			generer un mot de passe
+			genere un matricule pour username
+			genere un qr_code_image
+			envoie le email/sms a l'agent
+
+		si c'est un PUT
+			verifie si un qr_code_img est affecte
+			si oui:
+				ne fais rien
+			si non
+				genere un qr_code_img
+
+		 
+				
+			
