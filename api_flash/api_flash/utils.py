@@ -7,6 +7,7 @@ import random
 from django.core.mail import send_mail
 
 
+
 def get_object_or_raise(object, pk, data_name):
     try:
         elt = object.objects.get(pk=pk)

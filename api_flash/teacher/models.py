@@ -1,20 +1,19 @@
-from collections.abc import Iterable
 from django.db import models
-from django.contrib.auth.models import User
-from config_global.models import Town, Country, Box, Speciality, CategoryTeacher, Ladder, Grade, PersonalClass, Echelon
-from api_flash.utils import generate_qr_code_with_text, gen_matricule, generate_number, sendemail, set_each_first_letter_in_upper
+from config_global.models import Town, Country, Speciality, Ladder, Echelon, CategoryTeacher, Grade, PersonalClass
 from academic_years.models import AcademicYear
+from api_flash.utils import set_each_first_letter_in_upper, generate_number, gen_matricule, generate_qr_code_with_text, sendemail
 from rest_framework.response import Response
+from .constantes import CODE_ENSEIGNANT
 from academic_years.models import UserBase
 
 
-class Agent(UserBase):
+class Teacher(models.Model):
     SEXE_CHOICES = [
         ('homme', 'Homme'),
         ('femme', 'Femme'),
         ('autre', 'Autre'),
     ]
-    birth_city = models.ForeignKey(Town, on_delete=models.PROTECT, verbose_name="Ville de naissance", related_name="agent_birth_city")
+    birth_city = models.ForeignKey(Town, on_delete=models.PROTECT, verbose_name="Ville de naissance", related_name="teacher_birth_city")
     cityArea = models.CharField(max_length=255, null=True, blank=True)
     adress = models.CharField(max_length=255, null=True, blank=True)
     nationality = models.ForeignKey(Country, on_delete=models.PROTECT, verbose_name="Nationalité")
@@ -25,7 +24,6 @@ class Agent(UserBase):
     birth_date = models.DateField(verbose_name="Date de naissance")
     contact = models.CharField(max_length=30)
     qrcode_img = models.TextField(null=True, blank=True)
-    box = models.ForeignKey(Box, on_delete=models.PROTECT, verbose_name="Caisse", null=True, blank=True, related_name="agent_caisse")
     quality = models.CharField(max_length=50, null=True, blank=True)
     speciality = models.ForeignKey(Speciality, on_delete=models.PROTECT, verbose_name="Specialité", null=True, blank=True)
     ladder = models.ForeignKey(Ladder, on_delete=models.PROTECT, verbose_name="Echelle", null=True, blank=True)
@@ -33,16 +31,10 @@ class Agent(UserBase):
     category = models.ForeignKey(CategoryTeacher, on_delete=models.PROTECT, verbose_name="Categorie", null=True, blank=True)
     grade = models.ForeignKey(Grade, on_delete=models.PROTECT, verbose_name="Grade", null=True, blank=True)
     personal_class = models.ForeignKey(PersonalClass, on_delete=models.PROTECT, verbose_name="Classe Personelle", null=True, blank=True)
-    basic_salary = models.FloatField(default=0, verbose_name="Rémunération de base",)
-    retained_insurance = models.FloatField(default=0, verbose_name="Retenue Assurance")
-    retained_cnss = models.FloatField(default=0, verbose_name="Retenue CNSS")
-    retained_social_case = models.FloatField(default=0, verbose_name="Retenue Cas Social")
-    retained_other = models.FloatField(default=0, verbose_name="Autre retenue")
-    monthly_indaminitis = models.FloatField(default=0, verbose_name="Indaminité mensuel")
-    Detained_dependent_child = models.FloatField(default=0, verbose_name="Retenue Enfant Charge")
-    academic_years = models.ManyToManyField(AcademicYear, related_name="agents")
-    created_by = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, verbose_name="Ajouté par", related_name="agent_creating")
-    last_modified_by = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, verbose_name="Dernière modif par", related_name="last_modifier")
+    academic_years = models.ManyToManyField(AcademicYear, related_name="teachers")
+    created_by = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, verbose_name="Ajouté par", related_name="teacher_creating")
+    last_modified_by = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, verbose_name="Dernière modif par", related_name="teacher_last_modifier")
+
 
     def save(self, *args, **kwargs) -> None:
         self.last_name = self.last_name.upper()
@@ -50,9 +42,9 @@ class Agent(UserBase):
         if not self.id:
             password = f"{generate_number(5)}"
             self.password = password
-            super(Agent, self).save(*args, **kwargs)
-            matricule = gen_matricule(self.id, "FLASH", length=1000)
-            self.qrcode_img = generate_qr_code_with_text(self.id, self.username)
+            super(Teacher, self).save(*args, **kwargs)
+            matricule = gen_matricule(self.id, CODE_ENSEIGNANT, length=1000)
+            self.qrcode_img = generate_qr_code_with_text(self.id, '')
             try:
                 sendemail("Mot de passe", f"Information de connexion FLASH-APPLICATION \nlogin: {matricule}\nMot de passe: {password}", [self.email])
             except Exception:
@@ -60,9 +52,19 @@ class Agent(UserBase):
         else:
             if not self.qrcode_img:
                 self.qrcode_img = generate_qr_code_with_text(self.id, self.username)
-            super(Agent, self).save(*args, **kwargs)
+            super(Teacher, self).save(*args, **kwargs)
 
     
     def __str__(self) -> str:
         return self.last_name + " " + self.first_name
-    
+
+    class Meta:
+            db_table = "teacher"
+            swappable = "AUTH_USER_MODEL"
+            permissions = (
+                ("can_add_teacher", "Can add teacher"),
+                ("can_view_teacher", "Can view teacher"),
+                ("can_change_teacher", "Can change teacher"),
+                ("can_delete_teacher", "Can delete teacher"),
+            )
+            default_permissions = ('add', 'change', 'delete', 'view')

@@ -29,7 +29,8 @@ INSTALLED_APPS = [
     "config_global",
     "corsheaders",
     "academic_years",
-    "reporting"
+    "reporting",
+    "teacher"
 ]
 
 MIDDLEWARE = [

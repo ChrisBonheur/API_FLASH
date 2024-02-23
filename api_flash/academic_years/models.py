@@ -1,6 +1,11 @@
 from collections.abc import Iterable
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
+
+class UserBase(AbstractUser):
+    class Meta:
+        abstract = True
 
 class AcademicYear(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
