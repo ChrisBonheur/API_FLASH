@@ -11,7 +11,7 @@ SECRET_KEY = "django-insecure-ghgc!b3u24$r=j=xv9xf0tj(0cuo3d2w+9#x)8gms)&3s7)5+7
 
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', "test-umng-flash.zandosoft.online", "umng-flash.zandosoft.online"]
 
 
 # Application definition
