@@ -15,7 +15,9 @@ from agent.models import Agent
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    queryset = Review.objects.all()
+
+    def get_queryset(self):
+        return Review.objects.filter(is_active=True)
 
     def get_permissions(self):
         permissions = [IsAuthorOrReadOnly]
