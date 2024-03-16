@@ -19,30 +19,50 @@ from academic_years.serializers import AcademicSerializer
 from api_flash.constantes import YEAR_ID_HEADER
 from api_flash.exceptions import CustomValidationError
 from django.http import HttpResponse
-from django.http import HttpResponse
 from django.contrib.auth import authenticate, login as lg
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
-
+from rest_framework.decorators import action
+import asyncio
 
 class AgentViewsSet(ModelViewSet):
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        permission_classes = []
+        if self.action in ['retrieve', 'create', 'update']:
+            permission_classes = [IsAuthenticated]
+        return [permission() for permission in permission_classes]
+
     def get_serializer_class(self):
         serializer = AgentListSerializer
         if self.action in ['retrieve', 'create', 'update']:
             serializer = AgentSerializer
         return serializer
     
+    def get_object(self):
+        year_id = self.request.headers.get(YEAR_ID_HEADER)
+        year_academic = get_object_or_raise(AcademicYear, year_id, "ANNEE ACADEMIQUE")
+        obj = super().get_object()
+        if obj in self.get_queryset():
+            return obj
+        raise CustomValidationError(f"Cet enseignant n'est pas disponible dans  l'année academique '{YEAR_ID_HEADER}'.")
+    
     def get_queryset(self):
         year_id = self.request.headers.get(YEAR_ID_HEADER)
         if year_id:
             year_academic = get_object_or_raise(AcademicYear, year_id, "ANNEE ACADEMIQUE")
-            queryset = year_academic.agents.all()
+            queryset = Agent.objects.filter(user__years=year_academic, user__is_active=True)
             return queryset
         else:
-            raise ValidationError({'details': f"Veuillez specifier une année academique '{YEAR_ID_HEADER}' dans les entêtes."})
+            raise ValidationError({'detail': f"Veuillez specifier une année academique '{YEAR_ID_HEADER}' dans les entêtes."})
 
+    @action(detail=False, methods=['GET'])
+    def for_all_any_years(self, request):
+        agents = Agent.objects.all()
+        serializer = AgentListSerializer(agents, context={'request': request}, many=True)
+        return Response(serializer.data)
 
+        
 class CustomTokenObtainPairView(TokenObtainPairView):
     
     def post(self, request, *args, **kwargs):
@@ -50,28 +70,32 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             response = super().post(request, *args, **kwargs)
         except Exception as e:
             # Gérer l'exception ici
-            return Response({"details": "Information de connexion non valide !"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Information de connexion non valide !"}, status=status.HTTP_400_BAD_REQUEST)
         if response.status_code == status.HTTP_200_OK:
             user = User.objects.get(username=request.data['username'])
             user_chosed = request.data.get('type_user')
-
-            if user_chosed and user_chosed == type_user.AGENT.value:
-                agent = get_object_or_raise(Agent, user.id, "Agent")
+            found_agent = Agent.objects.filter(user=user)
+            if user_chosed == type_user.AGENT.value and found_agent.exists():
+                agent = found_agent[0]
                 serializer = AgentSerializer(agent, context={"request": request})
                 response.data['user'] = serializer.data
+                try:
+                    response.data['review'] = agent.user.review.id
+                except Exception as e:
+                    response.data['review'] = 0
+
                 otp = generate_number(6)
                 response.data['OTP'] = otp
-                response.data['academic_years'] = AcademicSerializer(agent.academic_years, many=True).data
-                if agent.academic_years.count() > 0:
-                    try:
-                        #sendemail("TOKEN", f"Connexion sur la plateforme FLASH-APPLICATION,\nVotre token d'authenfication est {otp}", [agent.email])
-                        print(otp)
-                    except Exception as e:
-                        raise CustomValidationError(f"{e}", 400)
+                response.data['academic_years'] = AcademicSerializer(agent.user.years, many=True).data
+                if agent.user.years.count() > 0:
+                    asyncio.run(sendemail("TOKEN", f"Connexion sur la plateforme FLASH-APPLICATION,\nVotre token d'authenfication est {otp}", [agent.user.email]))
+                    print(otp)
             else:
                 raise CustomValidationError("Information de connexion non valide !", 400)
         return response
-    
+
+#async def sendmailasync():
+
 
 @csrf_exempt
 def login(request):

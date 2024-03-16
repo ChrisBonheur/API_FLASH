@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class AcademicYear(models.Model):
@@ -7,6 +8,7 @@ class AcademicYear(models.Model):
     year_name = models.CharField(max_length=10, unique=True)
     year_begin = models.SmallIntegerField(default=0)
     year_end = models.SmallIntegerField(default=0)
+    users = models.ManyToManyField(User, related_name='years')
 
     def __str__(self) -> str:
         return self.year_name if self.year_name else "Année Académique"

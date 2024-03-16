@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from .models import AgentDocument
+from .models import UserDocument
 from api_flash.constantes import YEAR_ID_HEADER
 from api_flash.utils import get_object_or_raise
 from agent.models import Agent
@@ -7,7 +7,7 @@ from academic_years.models import AcademicYear
 
 class DocumentSerializer(ModelSerializer):
     class Meta:
-        model = AgentDocument
+        model = UserDocument
         fields = "__all__"
         extra_kwargs = {
             'added_by': {'required': False},

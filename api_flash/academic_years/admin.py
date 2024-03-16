@@ -4,7 +4,7 @@ from .models import AcademicYear
 
 class AcademicYearAdmin(admin.ModelAdmin):
 
-    fields = ['year_begin', 'year_end']
+    fields = ('year_begin', 'year_end', 'users')
     
     def has_module_permission(self, request):
         if request.user.is_superuser:

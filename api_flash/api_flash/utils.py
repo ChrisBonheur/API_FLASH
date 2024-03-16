@@ -5,13 +5,16 @@ import base64
 import qrcode
 import random
 from django.core.mail import send_mail
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 
 def get_object_or_raise(object, pk, data_name):
     try:
         elt = object.objects.get(pk=pk)
     except Exception as e:
-        raise NotFound({"details": f"Aucne donnée trouvée sur le model {data_name} contenant l'identifiant {pk}"})
+        raise NotFound({"detail": f"Aucne donnée trouvée sur le model {data_name} contenant l'identifiant {pk}"})
     else:
         return elt
 
@@ -29,13 +32,6 @@ def generate_qr_code_with_text(data, text):
     qr.make(fit=True)
 
     img = qr.make_image(fill_color="black", back_color="white")
-
-    # Ajouter du texte au-dessus du QR code
-    draw = ImageDraw.Draw(img)
-    font = ImageFont.load_default()
-    text_width, text_height = draw.textsize(text, font)
-    text_position = ((img.width - text_width) // 2, 10)
-    draw.text(text_position, text, fill="black", font=font)
 
     # Convertir l'image en base64
     buffered = BytesIO()
@@ -63,8 +59,40 @@ def generate_number(num_digits):
     return random.randint(min_value, max_value)
 
 
-def sendemail(subject, message, email_list):
-    return send_mail(subject, message, "mafoundou.bonheur@zandosoft.com", email_list)
+async def sendemail(subject, message, email_list):
+    # Paramètres du serveur SMTP
+    smtp_server = 'mail.zandosoft.online'
+    smtp_port = 587 # Port SMTP (généralement 587 pour TLS ou 465 pour SSL)
+    smtp_username = 'flashapp@zandosoft.online'
+    smtp_password = "x}W2t}B}ESD'PFT"
+
+    # Adresse e-mail de l'expéditeur
+    from_email = smtp_username
+
+    # Objet et contenu de l'e-mail
+    body = message
+    to_emails = ', '.join(email_list)
+    # Création de l'e-mail
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_emails
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    # Connexion au serveur SMTP et envoi de l'e-mail
+    try:
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()  # Démarre la connexion TLS (si nécessaire)
+        server.login(smtp_username, smtp_password)
+        server.sendmail(from_email, to_emails, msg.as_string())
+        print('email enoye')
+    except Exception as e:
+        print(f'Erreur lors de l\'envoi de l\'e-mail : {str(e)}')
+    finally:
+        try:
+            server.quit()  # Ferme la connexion SMTP
+        except Exception:
+            pass
 
 
 def set_each_first_letter_in_upper(content):

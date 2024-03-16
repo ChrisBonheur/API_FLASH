@@ -138,3 +138,28 @@ class Grade(IdentifiantGlobal):
 class PersonalClass(IdentifiantGlobal):
     class Meta:
         verbose_name = "Classe personnelle"
+
+
+class Branch(IdentifiantGlobal):
+    speciality = models.OneToOneField(Speciality, on_delete=models.PROTECT, verbose_name="Specialité", related_name="branch")
+    order = models.SmallIntegerField(default=0, null=True, verbose_name="Ordre")
+    class Meta:
+        verbose_name = "Branche"
+
+
+class Nivel(IdentifiantGlobal):
+    order = models.SmallIntegerField(default=0, null=True, verbose_name="Ordre")
+    examen_nivel = models.BooleanField(default=False, verbose_name="Est-un niveau d'examen")
+    branchs = models.ManyToManyField(Branch, related_name="nivels")
+
+    class Meta:
+        verbose_name = "Niveau"
+
+    
+class ClassRoom(IdentifiantGlobal):
+    nivel = models.ForeignKey(Nivel, related_name="nivel_class", verbose_name="Niveau", on_delete=models.PROTECT)
+    branch = models.ForeignKey(Branch, related_name="branch_class", verbose_name="Branche", on_delete=models.PROTECT)
+    order = models.SmallIntegerField(default=0, null=True, verbose_name="Ordre")
+
+    class Meta:
+        verbose_name = "Classe"

@@ -23,8 +23,10 @@ urlpatterns = [
     path('flashadministration/', admin.site.urls),
     path('redirect-to-admin/', login),
     path('agent/', include('agent.urls')),
+    path('review/', include('review.urls')),
     path('settings/', include('config_global.urls')),
     path('reporting/', include('reporting.urls')),
+    path('teacher/', include('teacher.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]

@@ -1,0 +1,7 @@
+-Gestion de date dans le formulaire agent
+-impression de liste agent
+-impression de dossier agent
+-Mise a jour des numeros (probleme avec institution). si instituion n'est pas specifier lors du update (impossible de faire un update)
+-commite une creation
+-input de recherche dans liste des numeros
+-revoir le cas de la soumission d'un article pqr un autre utilisateur, gerer le cas du proprietaire de l'article et de la revue

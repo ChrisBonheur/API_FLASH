@@ -5,9 +5,9 @@ from config_global.models import Town, Country, Box, Speciality, CategoryTeacher
 from api_flash.utils import generate_qr_code_with_text, gen_matricule, generate_number, sendemail, set_each_first_letter_in_upper
 from academic_years.models import AcademicYear
 from rest_framework.response import Response
+import asyncio
 
-
-class Agent(User):
+class Agent(models.Model):
     SEXE_CHOICES = [
         ('homme', 'Homme'),
         ('femme', 'Femme'),
@@ -21,7 +21,7 @@ class Agent(User):
     photo = models.TextField(null=True, blank=True)
     last_modified = models.DateTimeField(auto_now=True, editable=False, verbose_name="Dernières mise à jour")
     civility = models.CharField(max_length=10, choices=SEXE_CHOICES, verbose_name="Sexe")
-    birth_date = models.DateField(verbose_name="Date de naissance")
+    birth_date = models.DateField(verbose_name="Date de naissance", null=True, blank=True)
     contact = models.CharField(max_length=30)
     qrcode_img = models.TextField(null=True, blank=True)
     box = models.ForeignKey(Box, on_delete=models.PROTECT, verbose_name="Caisse", null=True, blank=True, related_name="agent_caisse")
@@ -39,31 +39,29 @@ class Agent(User):
     retained_other = models.FloatField(default=0, verbose_name="Autre retenue")
     monthly_indaminitis = models.FloatField(default=0, verbose_name="Indaminité mensuel")
     Detained_dependent_child = models.FloatField(default=0, verbose_name="Retenue Enfant Charge")
-    academic_years = models.ManyToManyField(AcademicYear, related_name="agents")
-    created_by = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, verbose_name="Ajouté par", related_name="agent_creating")
-    last_modified_by = models.ForeignKey('self', on_delete=models.PROTECT, null=True, blank=True, verbose_name="Dernière modif par", related_name="last_modifier")
+    created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Ajouté par", related_name="agent_creating")
+    last_modified_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Dernière modif par", related_name="last_modifier")
+    user = models.OneToOneField(User, on_delete=models.PROTECT, related_name="agent")
+    institution = models.CharField(max_length=255, null=True, blank=True, default="Marien Ngouabi")
+    about = models.CharField(max_length=255, null=True, blank=True)
+    function = models.CharField(max_length=255, null=True, blank=True)
 
     def save(self, *args, **kwargs) -> None:
-        self.last_name = self.last_name.upper()
-        self.first_name = set_each_first_letter_in_upper(self.first_name)
+        self.user.last_name = self.user.last_name.upper()
+        self.user.first_name = set_each_first_letter_in_upper(self.user.first_name)
         if not self.id:
             password = f"{generate_number(5)}"
             self.password = password
             super(Agent, self).save(*args, **kwargs)
             matricule = gen_matricule(self.id, "FLASH", length=1000)
-            self.qrcode_img = generate_qr_code_with_text(self.id, self.username)
-            try:
-                sendemail("Mot de passe", f"Information de connexion FLASH-APPLICATION \nlogin: {matricule}\nMot de passe: {password}", [self.email])
-            except Exception:
-                return Response({'detail': "L'email n'a pas été envoyé prière de contacter l'administrateur"}, status=400)
+            self.qrcode_img = generate_qr_code_with_text(self.id, self.user.username)
+            asyncio.run(sendemail("Mot de passe", f"Information de connexion FLASH-APPLICATION \nlogin: {matricule}\nMot de passe: {password}", [self.user.email]))
         else:
             if not self.qrcode_img:
-                self.qrcode_img = generate_qr_code_with_text(self.id, self.username)
+                self.qrcode_img = generate_qr_code_with_text(self.id, self.user.username)
             super(Agent, self).save(*args, **kwargs)
 
     
     def __str__(self) -> str:
-        return self.last_name + " " + self.first_name
+        return self.user.last_name + " " + self.user.first_name
     
-
-
