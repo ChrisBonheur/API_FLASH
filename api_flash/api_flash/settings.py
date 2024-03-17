@@ -1,18 +1,23 @@
 from pathlib import Path
 from .constantes import YEAR_ID_HEADER
 from datetime import timedelta
+import os
+from datetime import timedelta, datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-ghgc!b3u24$r=j=xv9xf0tj(0cuo3d2w+9#x)8gms)&3s7)5+7"
+SECRET_KEY = "lOz|u5AhmYTtD:5Ni?tLDW&#VA{fP1%olmB{x}tvCC-]Zq)w"
 
 DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', "test-umng-flash.zandosoft.online", "umng-flash.zandosoft.online"]
 
+#SECURE_HSTS_SECONDS = 31536000
+#SESSION_COOKIE_SECURE = True
+#SECURE_SSL_REDIRECT = True
 
 # Application definition
 
@@ -115,6 +120,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = 'staticfiles'
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -146,9 +155,15 @@ SWAGGER_SETTINGS = {
     },
 }
 
+now = datetime.now()
 
+# Calculer la durée jusqu'à minuit
+midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
+time_until_midnight = midnight - now
+
+# Définir ACCESS_TOKEN_LIFETIME sur la durée jusqu'à minuit
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': time_until_midnight,
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
