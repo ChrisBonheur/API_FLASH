@@ -24,6 +24,7 @@ class AgentSerializer(ModelSerializer):
         fields = "__all__"
         extra_kwargs = {
             'user': {'required': False},
+            'institution': {'required': False},
         }
 
     def get_field_names(self, declared_fields, info):

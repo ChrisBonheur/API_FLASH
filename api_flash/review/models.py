@@ -117,3 +117,17 @@ class Article(models.Model):
     counter_download = models.IntegerField(default=0)
     image_cover = models.TextField(null=True, blank=True)
     references = models.ManyToManyField(Reference, blank=True, related_name="articles")
+
+
+class PageContent(models.Model):
+    title = models.CharField(max_length=50)
+    content = models.TextField(null=True, blank=True)
+    date_update = models.DateTimeField(auto_now_add=True)
+    pdf_file = models.TextField(null=True, blank=True)
+    order = models.SmallIntegerField(default=1)
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="pages")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=('review', 'title'), name="unique_title_by_review")
+        ]

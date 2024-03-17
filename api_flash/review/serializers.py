@@ -9,6 +9,7 @@ from api_flash.exceptions import CustomValidationError
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 from rest_framework import status
+from .models import PageContent
 
 
 class AuthorSerializer(ModelSerializer):
@@ -17,12 +18,12 @@ class AuthorSerializer(ModelSerializer):
         fields = "__all__"
 
 class UserSerializer(ModelSerializer):
-    contact = serializers.CharField(source='author.contact', required=False, allow_null=True)
+    contact = serializers.CharField(source='author.contact', required=False,  allow_blank=True, allow_null=True)
     civility = serializers.CharField(source='author.civility')
-    about = serializers.CharField(source='author.about', required=False, allow_null=True)
-    institution = serializers.CharField(source='author.institution', required=False, allow_null=True, default="")
+    about = serializers.CharField(source='author.about', required=False, allow_blank=True, allow_null=True)
+    institution = serializers.CharField(source='author.institution', required=False, allow_null=True,  allow_blank=True)
     photo = serializers.CharField(source='author.photo', required=False, allow_null=True, allow_blank=True)
-    adress = serializers.CharField(source='author.adress', required=False, allow_null=True)
+    adress = serializers.CharField(source='author.adress', required=False, allow_null=True, allow_blank=True)
     id = serializers.IntegerField(source='author.id', required=False, allow_null=True)
 
     class Meta:
@@ -33,6 +34,8 @@ class UserSerializer(ModelSerializer):
             'password': {'required': False},
         }
 
+
+    
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         if self.context.get('request') and self.context['request'].method == "GET": 
@@ -247,14 +250,14 @@ class ArticleSerializer(ModelSerializer):
         for data in nesteed_authors:
             users = User.objects.filter(email=data['email'])
             if not users.exists():
-                last_id = Author.objects.last().id + 1 if Author.objects.last() else 1
+                last_id = User.objects.last().id + 1 if User.objects.last() else 1
                 data['username'] = gen_matricule(last_id, "AUT", length=1000)
                 data['password'] = "1234"
                 data['last_name'] = data.pop('last_name').upper()
                 data['first_name'] = set_each_first_letter_in_upper(data.pop('first_name'))
                 dataAuthor = data.pop('author')
                 user = User.objects.create_user(**data)
-                data['user'] = user
+                dataAuthor['user'] = user
                 Author.objects.create(**dataAuthor)
             else:
                 user = users[0]
@@ -269,8 +272,9 @@ class ArticleSerializer(ModelSerializer):
 
         for email_obj in article.authors.values('email'):
             if not email_obj['email'] in emails_in_nesteed:
-                author_to_rmv = User.objects.get(email=email_obj['email'])
-                article.authors.remove(author_to_rmv)
+                author_to_rmv = User.objects.filter(email=email_obj['email'])
+                if author_to_rmv.exists():
+                    article.authors.remove(author_to_rmv[0])
 
         #remove all references
         for reference in article.references.all():
@@ -287,11 +291,11 @@ class ArticleSerializerList(ModelSerializer):
     authors = UserSerializer(many=True)
     class Meta:
         model = Article
-        fields = ('id', 'title_fr', 'date_ajout', 'date_accept', 'date_publication', 'numero', 'state', 'counter_download', 'authors')
+        fields = ('id', 'title_fr', 'date_ajout', 'date_accept', 'date_publication', 'numero', 'state', 'counter_download', 'authors', 'page_begin', 'page_end')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['numero_volume_review_title'] = instance.user.review.title
+        data['numero_volume_review_code'] = instance.user.review.code
         if instance.numero:
             data['numero_index'] = instance.numero.index
             data['numero_volume_index'] = instance.numero.volume.index
@@ -311,3 +315,9 @@ class FilterArticleSerializer(serializers.Serializer):
     numero = serializers.IntegerField(required=False, allow_null=True)
     state = serializers.IntegerField(required=False, allow_null=True)
     authors = serializers.ListField(child=serializers.IntegerField(), required=False, allow_null=True)
+
+
+class PageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PageContent
+        fields = "__all__"

@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from .serializers import ReviewSerializer, VolumeSerializer, NumeroSerialzer, NumeroCreateUpdateSerializer, NumeroRetrieveSerializer, ArticleSerializer, ArticleSerializerList, TypeSourceSerializer, FilterArticleSerializer
+from .serializers import ReviewSerializer, VolumeSerializer, NumeroSerialzer, NumeroCreateUpdateSerializer, NumeroRetrieveSerializer, ArticleSerializer, ArticleSerializerList, TypeSourceSerializer, FilterArticleSerializer, PageSerializer
 from rest_framework.permissions import IsAuthenticated
 from api_flash.permissions import IsInGroupAuthorsPermission, FalsePermissionAlways, IsAuthorOrReadOnly
 from rest_framework.decorators import action
@@ -8,7 +8,7 @@ from api_flash.enum import state_article
 from api_flash.utils import get_object_or_raise
 from api_flash.exceptions import CustomValidationError
 from rest_framework import status
-from .models import Review, Volume, Numero, Article, TypeSource
+from .models import Review, Volume, Numero, Article, TypeSource, PageContent
 from rest_framework.response import Response
 from agent.models import Agent
 
@@ -140,3 +140,16 @@ class ArticleViewset(ModelViewSet):
 class TypeSourceViewset(ReadOnlyModelViewSet):
     serializer_class = TypeSourceSerializer
     queryset = TypeSource.objects.all()
+
+
+class PagesViewSet(ModelViewSet):
+    queryset = PageContent.objects.all()
+    serializer_class = PageSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+
+    @action(detail=True, methods=['GET'])
+    def get_by_review(self, request, pk):
+        review = get_object_or_raise(Review, pk=pk, data_name="Revue")
+        pages = review.pages.all()
+        serializer = PageSerializer(pages, many=True)
+        return Response(serializer.data)

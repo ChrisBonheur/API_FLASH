@@ -13,7 +13,14 @@ SECRET_KEY = "lOz|u5AhmYTtD:5Ni?tLDW&#VA{fP1%olmB{x}tvCC-]Zq)w"
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', "test-umng-flash.zandosoft.online", "umng-flash.zandosoft.online"]
+ALLOWED_HOSTS = [
+    '127.0.0.1', 
+    'localhost',
+    "test-umng-flash.zandosoft.online", 
+    "umng-flash.zandosoft.online", 
+    "test-api-flash.zandosoft.online",
+    "api-flash.zandosoft.online",
+]
 
 #SECURE_HSTS_SECONDS = 31536000
 #SESSION_COOKIE_SECURE = True
@@ -174,7 +181,7 @@ time_until_midnight = midnight - now
 
 # Définir ACCESS_TOKEN_LIFETIME sur la durée jusqu'à minuit
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': time_until_midnight,
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 

@@ -42,7 +42,7 @@ class Agent(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Ajouté par", related_name="agent_creating")
     last_modified_by = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True, verbose_name="Dernière modif par", related_name="last_modifier")
     user = models.OneToOneField(User, on_delete=models.PROTECT, related_name="agent")
-    institution = models.CharField(max_length=255, null=True, blank=True, default="Marien Ngouabi")
+    institution = models.CharField(max_length=255, null=True, blank=True)
     about = models.CharField(max_length=255, null=True, blank=True)
     function = models.CharField(max_length=255, null=True, blank=True)
 
