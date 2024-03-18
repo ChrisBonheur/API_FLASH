@@ -57,7 +57,7 @@ class AgentViewsSet(ModelViewSet):
             raise ValidationError({'detail': f"Veuillez specifier une année academique '{YEAR_ID_HEADER}' dans les entêtes."})
 
     @action(detail=False, methods=['GET'])
-    def for_all_any_years(self, request):
+    def for_all_any_years(self, request): #get all author for auggest author
         agents = Agent.objects.all()
         serializer = AgentListSerializer(agents, context={'request': request}, many=True)
         return Response(serializer.data)

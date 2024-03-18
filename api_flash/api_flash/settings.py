@@ -3,6 +3,11 @@ from .constantes import YEAR_ID_HEADER
 from datetime import timedelta
 import os
 from datetime import timedelta, datetime
+from django.utils.translation import gettext_lazy as _
+
+LANGUAGE_CODE = 'fr'
+ADMIN_LANGUAGE_CODE = 'fr'
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

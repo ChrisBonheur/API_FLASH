@@ -47,15 +47,9 @@ class Agent(models.Model):
     function = models.CharField(max_length=255, null=True, blank=True)
 
     def save(self, *args, **kwargs) -> None:
-        self.user.last_name = self.user.last_name.upper()
-        self.user.first_name = set_each_first_letter_in_upper(self.user.first_name)
         if not self.id:
-            password = f"{generate_number(5)}"
-            self.password = password
             super(Agent, self).save(*args, **kwargs)
-            matricule = gen_matricule(self.id, "FLASH", length=1000)
             self.qrcode_img = generate_qr_code_with_text(self.id, self.user.username)
-            asyncio.run(sendemail("Mot de passe", f"Information de connexion FLASH-APPLICATION \nlogin: {matricule}\nMot de passe: {password}", [self.user.email]))
         else:
             if not self.qrcode_img:
                 self.qrcode_img = generate_qr_code_with_text(self.id, self.user.username)

@@ -19,21 +19,18 @@ class AuthorSerializer(ModelSerializer):
 
 class UserSerializer(ModelSerializer):
     contact = serializers.CharField(source='author.contact', required=False,  allow_blank=True, allow_null=True)
-    civility = serializers.CharField(source='author.civility')
+    civility = serializers.CharField(source='author.civility', required=False, allow_blank=True, allow_null=True)
     about = serializers.CharField(source='author.about', required=False, allow_blank=True, allow_null=True)
     institution = serializers.CharField(source='author.institution', required=False, allow_null=True,  allow_blank=True)
     photo = serializers.CharField(source='author.photo', required=False, allow_null=True, allow_blank=True)
     adress = serializers.CharField(source='author.adress', required=False, allow_null=True, allow_blank=True)
     id = serializers.IntegerField(source='author.id', required=False, allow_null=True)
+    username = serializers.CharField(source='author.id', required=False, allow_null=True, allow_blank=True)
+    password = serializers.CharField(source='author.id', required=False, allow_null=True, allow_blank=True)
 
     class Meta:
         model = User
         fields = "__all__"
-        extra_kwargs = {
-            'username': {'required': False},
-            'password': {'required': False},
-        }
-
 
     
     def to_representation(self, instance):
@@ -87,10 +84,11 @@ class VolumeSerializer(ModelSerializer):
         instance = self.instance
         index = data.get('index')
         year = data.get('year')
+        review = data.get('review')
         fields = []
-        if (instance and Volume.objects.exclude(pk=instance.pk).filter(index=index).exists()) or (not instance and Volume.objects.filter(index=index).exists()):
+        if (instance and Volume.objects.exclude(pk=instance.pk).filter(index=index, review=review).exists()) or (not instance and Volume.objects.filter(index=index, review=review).exists()):
             fields.append('numéro du volume')
-        if (instance and Volume.objects.exclude(pk=instance.pk).filter(year=year).exists()) or (not instance and Volume.objects.filter(year=year).exists()):
+        if (instance and Volume.objects.exclude(pk=instance.pk).filter(year=year, review=review).exists()) or (not instance and Volume.objects.filter(year=year, review=review).exists()):
             fields.append('année du volume')
 
         if len(fields) > 0:
@@ -161,6 +159,7 @@ class NumeroCreateUpdateSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         nesteed_authors = validated_data.pop('sommaire_authors', None)
         numero = super().update(instance, validated_data)
+        users_author = []
         for data in nesteed_authors:
             users = User.objects.filter(email=data['email'])
             if not users.exists():
@@ -179,15 +178,11 @@ class NumeroCreateUpdateSerializer(ModelSerializer):
                     dataAuthor = data.pop('author')
                     User.objects.filter(pk=user.id).update(**data)
                     Author.objects.filter(user=user).update(**dataAuthor)
-            numero.sommaire_authors.add(user)
-        
-        #remove not extisting author in new list authors
-        emails_in_nesteed = [author['email'] for author in nesteed_authors]
-
-        for email_obj in numero.sommaire_authors.values('email'):
-            if not email_obj['email'] in emails_in_nesteed:
-                author_to_rmv = User.objects.get(email=email_obj['email'])
-                numero.sommaire_authors.remove(author_to_rmv)
+            users_author.append(user)
+        if len(users_author) > 0:
+            numero.sommaire_authors.set(users_author)
+        else:
+            [numero.sommaire_authors.remove(user) for user in numero.sommaire_authors.all()]
         return numero
     
 

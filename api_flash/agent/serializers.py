@@ -2,14 +2,20 @@ from rest_framework.serializers import ModelSerializer, Serializer
 from rest_framework import serializers
 from django.contrib.auth.models import AnonymousUser
 from .models import Agent
-from api_flash.utils import gen_matricule, generate_number, get_object_or_raise, set_each_first_letter_in_upper
+from api_flash.utils import gen_matricule, generate_number, get_object_or_raise, set_each_first_letter_in_upper, sendemail
 from api_flash.constantes import YEAR_ID_HEADER
 from academic_years.models import AcademicYear
 from rest_framework.response import Response
 from api_flash.exceptions import CustomValidationError
 from rest_framework import status
 from django.contrib.auth.models import Group, User
+import asyncio
 
+
+class GroupSerializer(ModelSerializer):
+    class Meta:
+        model = Group
+        fields = "__all__"
 
 class AgentSerializer(ModelSerializer):
     username = serializers.CharField(source='user.username', allow_null=True)
@@ -17,7 +23,7 @@ class AgentSerializer(ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
     is_active = serializers.BooleanField(source='user.is_active', default=True)
-    last_login = serializers.BooleanField(source='user.last_login', allow_null=True)
+    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), many=True, required=False)
 
     class Meta:
         model = Agent
@@ -59,15 +65,23 @@ class AgentSerializer(ModelSerializer):
     
     def create(self, validated_data):
         request = self.context['request']
-        last_id = Agent.objects.last().id + 3 if Agent.objects.last() else 1
+        last_id = User.objects.last().id + 3 if User.objects.last() else 1
         matricule = gen_matricule(last_id, "FLASH", length=1000)
+        password = f"{generate_number(5)}"
+
         validated_data['created_by'] = request.user
         validated_data['last_modified_by'] = request.user
         validated_data['user']['username'] = matricule
-        validated_data['user']['password'] = "1234"
+        validated_data['user']['password'] = password
         validated_data['user']['last_name'] = validated_data['user']['last_name'].upper()
         validated_data['user']['first_name'] = set_each_first_letter_in_upper(validated_data['user']['first_name'])
+
         user = User.objects.create_user(**validated_data['user'])
+        #send email
+        asyncio.run(sendemail("Mot de passe", f"Information de connexion FLASH-APPLICATION \nlogin: {matricule}\nMot de passe: {password}", [validated_data['user']['email']]))
+
+        groups_data = validated_data.pop('group', [])
+        user.groups.set(groups_data)
         validated_data['user'] = user
         new_agent = super().create(validated_data)
 
@@ -83,13 +97,19 @@ class AgentSerializer(ModelSerializer):
         validated_data['user']['last_name'] = validated_data['user']['last_name'].upper()
         validated_data['user']['first_name'] = set_each_first_letter_in_upper(validated_data['user']['first_name'])
         User.objects.filter(pk=instance.user.id).update(**validated_data['user'])
-        validated_data['user'] = User.objects.get(pk=instance.user.id)
+        user = User.objects.get(pk=instance.user.id)
+        validated_data['user'] = user
+        groups_data = validated_data.pop('group', [])
+        user.groups.set(groups_data)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         request = self.context['request']
         if request.method == "GET":
+            user_groups = instance.user.groups.all()
+            groups = [item.id for item in user_groups]
+            representation['group'] = groups
             representation['town_residence_label'] = instance.town_residence.label if instance.town_residence else ''
             representation['country_label'] = instance.town_residence.country.label if instance.town_residence else ''
             representation['country'] = instance.town_residence.country.id if instance.town_residence else ''

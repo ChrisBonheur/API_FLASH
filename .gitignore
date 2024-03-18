@@ -1,4 +1,5 @@
 env/
-api_flash/api_flash/settings.py
-api_flash/*/__pycache__/*
+*__pycache__*
+*.pyc
+
 node_modules/

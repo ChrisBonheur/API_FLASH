@@ -3,6 +3,7 @@ from .models import UserDocument
 from api_flash.constantes import YEAR_ID_HEADER
 from api_flash.utils import get_object_or_raise
 from agent.models import Agent
+from django.contrib.auth.models import User
 from academic_years.models import AcademicYear
 
 class DocumentSerializer(ModelSerializer):
@@ -28,7 +29,7 @@ class DocumentSerializer(ModelSerializer):
         request = self.context['request']
         year_id = request.headers.get(YEAR_ID_HEADER)
         year = get_object_or_raise(AcademicYear, year_id, "Année académique")
-        agentConnected = get_object_or_raise(Agent, request.user.id, "Agent")
+        agentConnected = get_object_or_raise(User, request.user.id, "Utilisateur")
         validated_data['year'] = year
         validated_data['added_by'] = agentConnected
         validated_data['last_update_by'] = agentConnected
@@ -37,6 +38,6 @@ class DocumentSerializer(ModelSerializer):
     
     def update(self, instance, validated_data):
         request = self.context['request']
-        agentConnected = get_object_or_raise(Agent, request.user.id, "Agent")
+        agentConnected = get_object_or_raise(User, request.user.id, "Utilisateur")
         validated_data['last_update_by'] = agentConnected
         return super().update(instance, validated_data)

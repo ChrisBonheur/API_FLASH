@@ -5,3 +5,15 @@
 -commite une creation
 -input de recherche dans liste des numeros
 -revoir le cas de la soumission d'un article pqr un autre utilisateur, gerer le cas du proprietaire de l'article et de la revue
+
+
+
+Points de l journee:
+
+--Condulation des revues, articles numeros, volume, pages statiques de facon individuel relatif au CAR
+--Creation de compte avec group
+--Afficher les menu en focntion des groups (conditionnement)
+--DEployement de l'api test sous sqlite
+--deployement du frontend
+--debug problement d'ajout auteur avec l'institution
+--format de date formulaire agent
