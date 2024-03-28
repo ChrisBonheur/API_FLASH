@@ -17,3 +17,5 @@ Points de l journee:
 --deployement du frontend
 --debug problement d'ajout auteur avec l'institution
 --format de date formulaire agent
+--Modifier son mot de passe
+--Renvoyer un mot de passe
