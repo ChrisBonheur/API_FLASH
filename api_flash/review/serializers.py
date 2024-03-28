@@ -10,6 +10,7 @@ from django.db import IntegrityError
 from django.contrib.auth.models import User
 from rest_framework import status
 from .models import PageContent
+import json
 
 
 class AuthorSerializer(ModelSerializer):
@@ -98,7 +99,6 @@ class VolumeSerializer(ModelSerializer):
         return data
         
 
-
 class NumeroSerialzer(ModelSerializer):
 
     class Meta:
@@ -184,7 +184,11 @@ class NumeroCreateUpdateSerializer(ModelSerializer):
         else:
             [numero.sommaire_authors.remove(user) for user in numero.sommaire_authors.all()]
         return numero
-    
+
+class NumeroListSerializer(ModelSerializer):
+    class Meta:
+        model = Numero
+        fields = ('id', 'label', 'index')   
 
 class ReferenceSerializer(ModelSerializer):
     class Meta:
@@ -283,14 +287,18 @@ class ArticleSerializer(ModelSerializer):
     
 
 class ArticleSerializerList(ModelSerializer):
-    authors = UserSerializer(many=True)
+    authors_labels = serializers.ListSerializer(child=UserSerializer(), source='authors')
     class Meta:
         model = Article
-        fields = ('id', 'title_fr', 'date_ajout', 'date_accept', 'date_publication', 'numero', 'state', 'counter_download', 'authors', 'page_begin', 'page_end')
+        fields = ('id', 'title_fr', 'date_ajout', 'date_accept', 'date_publication', 'numero', 'state', 'counter_download', 'authors', 'page_begin', 'page_end', 'authors_labels')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['numero_volume_review_code'] = instance.user.review.code
+        data['user_first_name'] = instance.user.first_name
+        data['user_last_name'] = instance.user.last_name
+        if hasattr(instance.user, "author") or hasattr(instance.user, "agent"):
+            data['user_institution'] = instance.user.author.institution if hasattr(instance.user, "author") else instance.user.agent.institution 
         if instance.numero:
             data['numero_index'] = instance.numero.index
             data['numero_volume_index'] = instance.numero.volume.index
@@ -316,3 +324,41 @@ class PageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PageContent
         fields = "__all__"
+        extra_kwargs = {
+            'review': {'required': False},
+        }
+
+    def validate(self, data):
+        instance = self.instance
+        order = data.get('order')
+        review = data.get('review')
+        fields = []
+        if (instance and PageContent.objects.exclude(pk=instance.pk).filter(review=review, order=order).exists()) or (not instance and PageContent.objects.filter(review=review, order=order).exists()):
+            fields.append('ordre d\'affichage')
+            fields.append('revue')
+
+        if len(fields) > 0:
+            field_names = ', '.join(fields)
+            error_message = f"Une donnée avec les champs uniques suivants existe déjà: {field_names}."
+            raise CustomValidationError(error_message, status.HTTP_400_BAD_REQUEST)
+        return data
+    
+    def to_internal_value(self, data):
+            internal_value = super().to_internal_value(data)
+            internal_value['review'] = self.context['request'].user.review
+
+            return internal_value
+
+
+class PageListSerializer(ModelSerializer):
+    class Meta:
+        model = PageContent
+        exclude = ('content', 'pdf_file')
+
+
+class VolumeNumeroSerializer(ModelSerializer):
+    numeros = NumeroListSerializer(many=True)
+
+    class Meta:
+        model = Volume
+        fields = ("id", "index", "date_created", "year", "numeros")

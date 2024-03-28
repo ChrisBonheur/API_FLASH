@@ -19,7 +19,7 @@ class IsAuthorOrReadOnly(BasePermission):
         # Vérifie si la méthode de la requête est sécurisée (GET, HEAD, OPTIONS)
         if request.method in ['GET', 'HEAD', 'OPTIONS']:
             return True
-        return obj.user == request.user
+        return hasattr(obj, 'user') and obj.user == request.user
 
 
 class FalsePermissionAlways(BasePermission):

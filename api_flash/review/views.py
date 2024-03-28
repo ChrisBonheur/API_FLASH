@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from .serializers import ReviewSerializer, VolumeSerializer, NumeroSerialzer, NumeroCreateUpdateSerializer, NumeroRetrieveSerializer, ArticleSerializer, ArticleSerializerList, TypeSourceSerializer, FilterArticleSerializer, PageSerializer
+from .serializers import ReviewSerializer, VolumeSerializer, NumeroSerialzer, NumeroCreateUpdateSerializer, NumeroRetrieveSerializer, ArticleSerializer, ArticleSerializerList, TypeSourceSerializer, FilterArticleSerializer, PageSerializer, PageListSerializer, VolumeNumeroSerializer
 from rest_framework.permissions import IsAuthenticated
 from api_flash.permissions import IsInGroupAuthorsPermission, FalsePermissionAlways, IsAuthorOrReadOnly
 from rest_framework.decorators import action
@@ -11,6 +11,7 @@ from rest_framework import status
 from .models import Review, Volume, Numero, Article, TypeSource, PageContent
 from rest_framework.response import Response
 from agent.models import Agent
+from .permissions import IsOwnerPAgeOrReadOnly, IsOwnerReviewOrReadOnly, IsOwnerNumeroOrReadOnly
 
 
 class ReviewViewSet(ModelViewSet):
@@ -20,7 +21,7 @@ class ReviewViewSet(ModelViewSet):
         return Review.objects.filter(is_active=True)
 
     def get_permissions(self):
-        permissions = [IsAuthorOrReadOnly]
+        permissions = [IsOwnerReviewOrReadOnly]
         if self.action in ['create', 'update', 'destroy']:
             permissions.append(IsInGroupAuthorsPermission)
         return [permission() for permission in permissions]
@@ -52,13 +53,20 @@ class VolumeViewSet(ModelViewSet):
         review = get_object_or_raise(Review, pk=pk, data_name="Revue")
         serializer = VolumeSerializer(review.volumes.all(), many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['GET'])
+    def get_by_review_with_numeros(self, request, pk=None):
+        review = get_object_or_raise(Review, pk=pk, data_name="Revue")
+        volumes = review.volumes.all()
+        serializer = VolumeNumeroSerializer(volumes, many=True)
+        return Response(serializer.data)
         
 
 class NumeroViewSet(ModelViewSet):
     queryset = Numero.objects.all()
 
     def get_permissions(self):
-        permissions = [IsAuthorOrReadOnly]
+        permissions = [IsOwnerNumeroOrReadOnly]
         if self.action in ['create', 'update', 'destroy']:
             permissions.append(IsAuthenticated)
         return [permission() for permission in permissions]
@@ -121,7 +129,7 @@ class ArticleViewset(ModelViewSet):
     def filter(self, request):
         serializer = FilterArticleSerializer(data=request.data)
         if serializer.is_valid():   
-            articles = Article.objects.filter(**serializer.data)
+            articles = Article.objects.filter(**request.data)
         else:
             articles = []
         serializer = ArticleSerializerList(articles, many=True)
@@ -144,8 +152,12 @@ class TypeSourceViewset(ReadOnlyModelViewSet):
 
 class PagesViewSet(ModelViewSet):
     queryset = PageContent.objects.all()
-    serializer_class = PageSerializer
-    permission_classes = [IsAuthorOrReadOnly]
+    permission_classes = [IsOwnerPAgeOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'retrieve']:
+            return PageSerializer
+        return PageListSerializer
 
     @action(detail=True, methods=['GET'])
     def get_by_review(self, request, pk):

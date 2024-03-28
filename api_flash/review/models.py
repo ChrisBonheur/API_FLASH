@@ -15,6 +15,7 @@ class Review(models.Model):
     is_active = models.BooleanField(default=True)
     issn = models.CharField(max_length=50, null=True, blank=True)
     eissn = models.CharField(max_length=50, null=True, blank=True)
+    copyright = models.TextField(null=True, blank=True)
 
 
 class TypeSource(models.Model):
@@ -126,8 +127,10 @@ class PageContent(models.Model):
     pdf_file = models.TextField(null=True, blank=True)
     order = models.SmallIntegerField(default=1)
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name="pages")
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=('review', 'title'), name="unique_title_by_review")
+            models.UniqueConstraint(fields=('review', 'title'), name="unique_title_by_review"),
+            models.UniqueConstraint(fields=('review', 'order'), name="unique_order_by_review"),
         ]
