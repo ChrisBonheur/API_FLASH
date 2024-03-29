@@ -127,6 +127,7 @@ class ArticleViewset(ModelViewSet):
     
     @action(detail=False, methods=['POST'], serializer_class=FilterArticleSerializer)
     def filter(self, request):
+        review = None
         if request.data.get('review'):
             review = request.data.pop('review')
         serializer = FilterArticleSerializer(data=request.data)
