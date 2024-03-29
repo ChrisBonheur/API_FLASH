@@ -127,9 +127,14 @@ class ArticleViewset(ModelViewSet):
     
     @action(detail=False, methods=['POST'], serializer_class=FilterArticleSerializer)
     def filter(self, request):
+        if request.data.get('review'):
+            review = request.data.pop('review')
         serializer = FilterArticleSerializer(data=request.data)
-        if serializer.is_valid():   
+
+        if serializer.is_valid():
             articles = Article.objects.filter(**request.data)
+            if review:
+                articles = articles.filter(numero__volume__review=review)
         else:
             articles = []
         serializer = ArticleSerializerList(articles, many=True)
@@ -142,7 +147,6 @@ class ArticleViewset(ModelViewSet):
         article.save()
         serializer = ArticleSerializer(article)
         return Response(serializer.data)
-
 
 
 class TypeSourceViewset(ReadOnlyModelViewSet):

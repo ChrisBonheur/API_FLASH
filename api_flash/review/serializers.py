@@ -315,6 +315,7 @@ class TypeSourceSerializer(ModelSerializer):
 
 class FilterArticleSerializer(serializers.Serializer):
     user = serializers.IntegerField(required=False, allow_null=True)
+    review = serializers.IntegerField(required=False, allow_null=True)
     numero = serializers.IntegerField(required=False, allow_null=True)
     state = serializers.IntegerField(required=False, allow_null=True)
     authors = serializers.ListField(child=serializers.IntegerField(), required=False, allow_null=True)
