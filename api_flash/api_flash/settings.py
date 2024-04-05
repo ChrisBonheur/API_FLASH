@@ -86,8 +86,7 @@ WSGI_APPLICATION = "api_flash.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
-
+"""
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -98,15 +97,14 @@ DATABASES = {
 """
 DATABASES = {  
     'default': {  
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',  
-        'NAME': 'c2316147c_test_flash',  
+        'ENGINE':  'django.db.backends.mysql',  
+        'NAME': 'c2316147c_flash',  
         'USER': 'c2316147c_bonheur',  
-        'PASSWORD': 'm#Qfqyq+6oYI',
+        'PASSWORD': '3Hl7w}WUQx?e',
         'HOST': 'localhost',  
-        'PORT': '5432',  
+        'PORT': '3306',  
     }
 }
-"""
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -186,8 +184,8 @@ time_until_midnight = midnight - now
 
 # Définir ACCESS_TOKEN_LIFETIME sur la durée jusqu'à minuit
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=time_until_midnight),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=time_until_midnight),
 }
 
 REST_FRAMEWORK = {
