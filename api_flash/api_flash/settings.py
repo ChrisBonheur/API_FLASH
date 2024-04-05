@@ -184,7 +184,7 @@ time_until_midnight = midnight - now
 
 # Définir ACCESS_TOKEN_LIFETIME sur la durée jusqu'à minuit
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=time_until_midnight),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=time_until_midnight),
 }
 
