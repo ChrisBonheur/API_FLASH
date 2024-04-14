@@ -11,7 +11,7 @@ from rest_framework import status
 from .models import Review, Volume, Numero, Article, TypeSource, PageContent
 from rest_framework.response import Response
 from agent.models import Agent
-from .permissions import IsOwnerPAgeOrReadOnly, IsOwnerReviewOrReadOnly, IsOwnerNumeroOrReadOnly
+from .permissions import IsOwnerPAgeOrReadOnly, IsOwnerReviewOrReadOnly, IsOwnerNumeroOrReadOnly, IsOwnerVolumOrReadOnly
 
 
 class ReviewViewSet(ModelViewSet):
@@ -43,7 +43,7 @@ class VolumeViewSet(ModelViewSet):
     queryset = Volume.objects.all()
 
     def get_permissions(self):
-        permissions = [IsAuthorOrReadOnly]
+        permissions = [IsOwnerVolumOrReadOnly]
         if self.action in ['create', 'update', 'destroy']:
             permissions.append(IsAuthenticated)
         return [permission() for permission in permissions]
@@ -96,6 +96,12 @@ class NumeroViewSet(ModelViewSet):
 class ArticleViewset(ModelViewSet):
     queryset = Article.objects.all()
 
+    def get_object(self):
+        article = super().get_object()
+        article.counter_download += 1
+        article.save()
+        return article
+
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'retrieve']:
             return ArticleSerializer
@@ -130,12 +136,12 @@ class ArticleViewset(ModelViewSet):
         review = None
         if request.data.get('review'):
             review = request.data.pop('review')
+            review = get_object_or_raise(Review, review, 'Revue')
         serializer = FilterArticleSerializer(data=request.data)
-
         if serializer.is_valid():
             articles = Article.objects.filter(**request.data)
             if review:
-                articles = articles.filter(numero__volume__review=review)
+                articles = articles.filter(user=review.author)
         else:
             articles = []
         serializer = ArticleSerializerList(articles, many=True)
@@ -147,6 +153,12 @@ class ArticleViewset(ModelViewSet):
         article.state = state_article.PARRUTION.value
         article.save()
         serializer = ArticleSerializer(article)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['GET'], serializer_class=ArticleSerializerList, permission_classes=[IsAuthorOrReadOnly])
+    def get_most_view_by_review(self, request, pk):
+        articles = Article.objects.filter(numero__volume__review__id=pk).order_by('-counter_download')[:10]
+        serializer = ArticleSerializerList(articles, many=True)
         return Response(serializer.data)
 
 

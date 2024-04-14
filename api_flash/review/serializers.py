@@ -285,6 +285,24 @@ class ArticleSerializer(ModelSerializer):
 
         return article
     
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['numero_volume_review_code'] = instance.user.review.code
+        data['numero_volume_review_id'] = instance.user.review.id
+        data['numero_volume_review_name'] = instance.user.review.title
+        data['numero_volume_review_issn'] = instance.user.review.issn
+        data['numero_volume_review_logo'] = instance.user.review.logo
+        data['user_first_name'] = instance.user.first_name
+        data['user_last_name'] = instance.user.last_name
+        if hasattr(instance.user, "author") or hasattr(instance.user, "agent"):
+            data['user_institution'] = instance.user.author.institution if hasattr(instance.user, "author") else instance.user.agent.institution 
+        if instance.numero:
+            data['numero_index'] = instance.numero.index
+            data['numero_volume_index'] = instance.numero.volume.index
+        if instance.page_begin and instance.page_end:
+            data['interval_page'] = f"{instance.page_begin}-{instance.page_end}"
+        return data
+
 
 class ArticleSerializerList(ModelSerializer):
     authors_labels = serializers.ListSerializer(child=UserSerializer(), source='authors')
@@ -295,6 +313,9 @@ class ArticleSerializerList(ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['numero_volume_review_code'] = instance.user.review.code
+        data['numero_volume_review_id'] = instance.user.review.id
+        data['numero_volume_review_name'] = instance.user.review.title
+        data['numero_volume_review_logo'] = instance.user.review.logo
         data['user_first_name'] = instance.user.first_name
         data['user_last_name'] = instance.user.last_name
         if hasattr(instance.user, "author") or hasattr(instance.user, "agent"):

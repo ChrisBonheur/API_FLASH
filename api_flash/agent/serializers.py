@@ -23,7 +23,7 @@ class AgentSerializer(ModelSerializer):
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
     is_active = serializers.BooleanField(source='user.is_active', default=True)
-    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), many=True, required=False)
+    group = serializers.ListField(child=serializers.IntegerField(), allow_null=True)
 
     class Meta:
         model = Agent
@@ -75,13 +75,14 @@ class AgentSerializer(ModelSerializer):
         validated_data['user']['password'] = password
         validated_data['user']['last_name'] = validated_data['user']['last_name'].upper()
         validated_data['user']['first_name'] = set_each_first_letter_in_upper(validated_data['user']['first_name'])
-
         user = User.objects.create_user(**validated_data['user'])
+        
         #send email
         asyncio.run(sendemail("Mot de passe", f"Information de connexion FLASH-APPLICATION \nlogin: {matricule}\nMot de passe: {password}", [validated_data['user']['email']]))
 
         groups_data = validated_data.pop('group', [])
-        user.groups.set(groups_data)
+        groups = Group.objects.filter(name__in=groups_data)
+        user.groups.set(groups)
         validated_data['user'] = user
         new_agent = super().create(validated_data)
 
@@ -100,7 +101,8 @@ class AgentSerializer(ModelSerializer):
         user = User.objects.get(pk=instance.user.id)
         validated_data['user'] = user
         groups_data = validated_data.pop('group', [])
-        user.groups.set(groups_data)
+        groups = Group.objects.filter(id__in=groups_data)
+        user.groups.set(groups)
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
@@ -110,6 +112,7 @@ class AgentSerializer(ModelSerializer):
             user_groups = instance.user.groups.all()
             groups = [item.id for item in user_groups]
             representation['group'] = groups
+            representation['group_view'] = GroupSerializer(user_groups, many=True).data
             representation['town_residence_label'] = instance.town_residence.label if instance.town_residence else ''
             representation['country_label'] = instance.town_residence.country.label if instance.town_residence else ''
             representation['country'] = instance.town_residence.country.id if instance.town_residence else ''

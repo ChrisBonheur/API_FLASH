@@ -134,3 +134,4 @@ class PageContent(models.Model):
             models.UniqueConstraint(fields=('review', 'title'), name="unique_title_by_review"),
             models.UniqueConstraint(fields=('review', 'order'), name="unique_order_by_review"),
         ]
+        ordering = ('order', )

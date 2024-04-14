@@ -103,9 +103,9 @@ def login(request):
     password = request.POST.get('password')
     user_chosed = request.POST.get('type_user')
     user = authenticate(request, username=username, password=password)
-    agent = Agent.objects.filter(username=username)
+    agent = Agent.objects.filter(user=user)
 
-    if user and (int(user_chosed) == type_user.AGENT.value) and agent.exists() and agent[0].is_active:
-        lg(request, agent[0])
+    if user and (int(user_chosed) == type_user.AGENT.value) and agent.exists() and user.is_active:
+        lg(request, user)
         return redirect('/flashadministration/')  
     return HttpResponse("Vous n'êtes pas habilité à consulter cette page. Prière de se rapprocher du SSE/FLASH pour en savoir d'avantage. Merci!")
