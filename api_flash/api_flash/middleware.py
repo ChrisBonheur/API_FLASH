@@ -11,7 +11,7 @@ class CustomHeaderMiddleware:
         # Récupère la valeur de l'en-tête personnalisé
         custom_header_value = request.headers[YEAR_ID_HEADER]
         if not custom_header_value:
-            raise CustomValidationError(detail="Aucune entête trouvée prière de se reconnecter, pour corriger le problème !")
+            raise CustomValidationError(detail="Aucun en-tête trouvé prière de se reconnecter, pour corriger le problème !")
         
         response = self.get_response(request)
         return response

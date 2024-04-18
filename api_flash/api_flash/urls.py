@@ -28,6 +28,7 @@ urlpatterns = [
     path('settings/', include('config_global.urls')),
     path('reporting/', include('reporting.urls')),
     path('teacher/', include('teacher.urls')),
+    path('student/', include('student.urls')),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]

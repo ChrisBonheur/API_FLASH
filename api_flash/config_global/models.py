@@ -27,6 +27,7 @@ class Country(Identifiant):
 
     class Meta:
         verbose_name="Pays"
+        verbose_name_plural="Pays"
 
     def __str__(self) -> str:
         return self.label
@@ -140,26 +141,55 @@ class PersonalClass(IdentifiantGlobal):
         verbose_name = "Classe personnelle"
 
 
-class Branch(IdentifiantGlobal):
-    speciality = models.OneToOneField(Speciality, on_delete=models.PROTECT, verbose_name="Specialité", related_name="branch")
+class Parcours(IdentifiantGlobal):
     order = models.SmallIntegerField(default=0, null=True, verbose_name="Ordre")
     class Meta:
-        verbose_name = "Branche"
+        verbose_name_plural = "Parcours"
 
 
-class Nivel(IdentifiantGlobal):
+class Cycle(IdentifiantGlobal):
+    order = models.SmallIntegerField(default=0, null=True, verbose_name="Ordre")
+
+    class Meta:
+        ordering = ('order', )
+
+    def __str__(self) -> str:
+        return self.label
+
+
+class Nivel(models.Model):
+    code = models.CharField(max_length=10, verbose_name="Code")
+    label = models.CharField(max_length=50, verbose_name="Nom")
     order = models.SmallIntegerField(default=0, null=True, verbose_name="Ordre")
     examen_nivel = models.BooleanField(default=False, verbose_name="Est-un niveau d'examen")
-    branchs = models.ManyToManyField(Branch, related_name="nivels")
+    cycle = models.ForeignKey(Cycle, on_delete=models.PROTECT, related_name="nivel")
 
     class Meta:
         verbose_name = "Niveau"
+        verbose_name_plural = "Niveaux"
+        ordering = ('order', )
+        constraints = [
+            models.UniqueConstraint(fields=('cycle', 'order',), name="unique_order_cycle"),
+            models.UniqueConstraint(fields=('cycle', 'label',), name="unique_label_cycle"),
+            models.UniqueConstraint(fields=('cycle', 'code',), name="unique_code_cycle"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.label} {self.cycle.label} ({self.code}-{self.cycle.code})"
+
 
     
 class ClassRoom(IdentifiantGlobal):
     nivel = models.ForeignKey(Nivel, related_name="nivel_class", verbose_name="Niveau", on_delete=models.PROTECT)
-    branch = models.ForeignKey(Branch, related_name="branch_class", verbose_name="Branche", on_delete=models.PROTECT)
+    branch = models.ForeignKey(Parcours, related_name="branch_class", verbose_name="Parcours", on_delete=models.PROTECT)
     order = models.SmallIntegerField(default=0, null=True, verbose_name="Ordre")
+    capacity_max = models.IntegerField(default=0, verbose_name="Capacité max")
+    current_capacity = models.IntegerField(default=0, verbose_name="Nombre d'inscrits", editable=False)
 
     class Meta:
         verbose_name = "Classe"
+
+
+class GeneralBacSeries(IdentifiantGlobal):
+    class Meta:
+        verbose_name = "Serie"

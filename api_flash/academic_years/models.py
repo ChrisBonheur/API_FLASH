@@ -9,6 +9,7 @@ class AcademicYear(models.Model):
     year_begin = models.SmallIntegerField(default=0)
     year_end = models.SmallIntegerField(default=0)
     users = models.ManyToManyField(User, related_name='years')
+    is_completed = models.BooleanField(default=True)
 
     def __str__(self) -> str:
         return self.year_name if self.year_name else "Année Académique"
@@ -21,5 +22,7 @@ class AcademicYear(models.Model):
         ordering = ["-year_end"]
 
     def save(self, *args, **kwargs):
+        AcademicYear.objects.all().update(is_completed=False)
+        self.is_completed = True
         self.year_name = f"{self.year_begin}-{self.year_end}"
         return super(AcademicYear, self).save(*args, **kwargs)

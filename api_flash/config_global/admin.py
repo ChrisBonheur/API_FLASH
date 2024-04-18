@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Departement, Town, Country, CategoryTeacher, Speciality, Echelon, Ladder, Grade, PersonalClass, Box, ChartOfAccount, Bundle, Branch, Nivel, ClassRoom
+from .models import Departement, Town, Country, CategoryTeacher, Speciality, Echelon, Ladder, Grade, PersonalClass, Box, ChartOfAccount, Bundle, Parcours, Nivel, ClassRoom, GeneralBacSeries, Cycle
 
 class GlobalControl(admin.ModelAdmin):
     search_fields = ['code', 'label']
@@ -66,11 +66,18 @@ class NivelAdmin(GlobalControl):
     ordering = ('order',)
 
 
-class BrancheAdmin(GlobalControl):
+class ParcoursAdmin(GlobalControl):
     ordering = ('order',)
 
 class ClassRoomAdmin(GlobalControl):
     ordering = ('order',)
+
+class GeneralBacSeriesAdmin(GlobalControl):
+    ordering = ('label', )
+
+class CycleAdmin(GlobalControl):
+    ordering = ('order', )
+
 
 
 admin.site.register(Departement, DepartementAdmin)
@@ -85,7 +92,9 @@ admin.site.register(PersonalClass, PersonalClassAdmin)
 admin.site.register(Box, BoxAdmin)
 admin.site.register(ChartOfAccount, ChartOfAccountAdmin)
 admin.site.register(Bundle, BundleAdmin)
-admin.site.register(Branch, BrancheAdmin)
+admin.site.register(Parcours, ParcoursAdmin)
 admin.site.register(Nivel, NivelAdmin)
 admin.site.register(ClassRoom, ClassRoomAdmin)
+admin.site.register(GeneralBacSeries, GeneralBacSeriesAdmin)
+admin.site.register(Cycle, CycleAdmin)
 
