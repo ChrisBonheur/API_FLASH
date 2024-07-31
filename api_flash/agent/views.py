@@ -24,6 +24,8 @@ from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import action
 import asyncio
+from api_flash.enum import type_user
+from .data import roles
 
 class AgentViewsSet(ModelViewSet):
 
@@ -95,6 +97,34 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         return response
 
 #async def sendmailasync():
+
+
+
+class ReviewTokenObtainPairView(TokenObtainPairView):
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            response = super().post(request, *args, **kwargs)
+        except Exception as e:
+            # Gérer l'exception ici
+            return Response({"detail": "Information de connexion non valide !"}, status=status.HTTP_400_BAD_REQUEST)
+        if response.status_code == status.HTTP_200_OK:
+            user = User.objects.get(username=request.data['username'])
+            user_chosed = request.data.get('type_user')
+            found_agent = Agent.objects.filter(user=user)
+
+            autor_role = roles[type_user.AUTEUR.value]
+            if found_agent.exists() and  user.groups.filter(name=autor_role).exists():
+                agent = found_agent[0]
+                serializer = AgentSerializer(agent, context={"request": request})
+                response.data['user'] = serializer.data
+                try:
+                    response.data['review'] = agent.user.review.id
+                except Exception as e:
+                    response.data['review'] = 0
+            else:
+                raise CustomValidationError("Cet utilisateur ne fait pas parti du groupe des auteurs des revues de la FLASH !", 400)
+        return response
 
 
 @csrf_exempt

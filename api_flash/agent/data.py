@@ -1,4 +1,6 @@
-roles = ["auteur", "gestionnaire", "doyen", "vice-doyen", 'enseignant']
+
+#this is real position of enum 
+roles = ["doyen",  "vice-doyen", "agent", 'enseignant', 'auteur', 'etudiant']
 
 african_countries = [
     {"label": "Algérie", "code": "DZ", 'ordering': 1, 'nationality_label': 'Algérien'},

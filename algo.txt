@@ -26,6 +26,26 @@ Ajouter un Agent
 			si non
 				genere un qr_code_img
 
-		 
-				
+
+
+
+/////////////CReer une annee Academique
+Desactive toutes les annees academiques
+active juste l'annee creee
+
+
 			
+
+///////////////////////////////////////////////////////////////////////
+Soumettre une preinscription
+----------------------------
+-verifie si le numero de tel est deja utilisé par un autre utilisateur dans l'annee courante:
+	*Si oui:
+		renvoie le nom et prenom de celui auquel il est lié
+		renvoie le statut 455 si c'est un etudiant deja inscrit
+		renvoie le statut 456 si c'est un etudiant avec un dossier valide en attente de validation definitive (impossible de mofifier)
+		renvoie le statut 457 si c'est un dossier en attente d'acceptation (possible de modifier)
+
+
+	*Si non:
+		enregistre et genere un code unique lier au dossier qui est renvoye a l'etudiant lui servant a modifier son dossier  

@@ -1,10 +1,12 @@
 from enum import Enum
-
+#this is real position of table data role precreate
 class type_user(Enum):
-    DOYEN = 1
+    DOYEN = 0
+    VICE_DOYEN = 1
     AGENT = 2
     ENSEIGNANT = 3
-    ETUDIANT = 4
+    AUTEUR = 4
+    ETUDIANT = 5
 
 
 class type_inscription(Enum):
