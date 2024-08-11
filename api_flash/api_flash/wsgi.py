@@ -16,3 +16,5 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api_flash.settings")
 
 
 application = Cling(get_wsgi_application())
+
+app = application

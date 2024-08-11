@@ -26,6 +26,7 @@ ALLOWED_HOSTS = [
     "test-api-flash.zandosoft.online",
     "api-flash.zandosoft.online",
     '206.189.238.182',
+    '*'
 ]
 
 #SECURE_HSTS_SECONDS = 31536000
