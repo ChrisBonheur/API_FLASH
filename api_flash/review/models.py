@@ -43,11 +43,11 @@ class Numero(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     label = models.CharField(max_length=100, null=True, blank=True)
     index = models.SmallIntegerField()
-    sommaire_title = models.CharField(max_length=1000)
+    sommaire_title = models.CharField(max_length=1000, null=True, blank=True)
     sommaire_label = models.CharField(max_length=200, null=True, blank=True)
-    sommaire_presentation = models.TextField()
+    sommaire_presentation = models.TextField(null=True, blank=True)
     sommaire_cover = models.TextField(null=True, blank=True)
-    sommaire_pdf = models.TextField()
+    sommaire_pdf = models.TextField(null=True, blank=True)
     sommaire_authors = models.ManyToManyField(User, related_name="sommaires")
 
     def save(self, *args, **kwargs) -> None:
@@ -71,7 +71,7 @@ class Author(models.Model):
     contact = models.CharField(max_length=30, null=True, blank=True)
     civility = models.CharField(max_length=10, choices=SEXE_CHOICES, verbose_name="Sexe")
     function = models.CharField(max_length=255, null=True, blank=True)
-    institution = models.CharField(max_length=255, null=True, blank=True)
+    institution = models.TextField(null=True, blank=True)
     about = models.CharField(max_length=255, null=True, blank=True)
     photo = models.TextField(null=True, blank=True)
     user = models.OneToOneField(User, on_delete=models.PROTECT, related_name="author")
@@ -97,8 +97,8 @@ class Article(models.Model):
         PARRUTION = 2
         PUBLICATION = 3
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name="articles_owner")
-    title_fr = models.CharField(max_length=500)
-    title_ang = models.CharField(max_length=500, null=True, blank=True)
+    title_fr = models.TextField()
+    title_ang = models.TextField(null=True, blank=True)
     date_ajout = models.DateTimeField(auto_now_add=True)
     date_accept = models.DateTimeField(null=True, blank=True)
     date_publication = models.DateTimeField(null=True, blank=True)
