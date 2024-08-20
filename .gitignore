@@ -3,3 +3,4 @@ env/
 *.pyc
 .git/
 node_modules/
+api_flash/db.sqlite3
