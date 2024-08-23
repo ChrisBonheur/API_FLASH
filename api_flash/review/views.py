@@ -1,5 +1,8 @@
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from .serializers import ReviewSerializer, VolumeSerializer, NumeroSerialzer, NumeroCreateUpdateSerializer, NumeroRetrieveSerializer, ArticleSerializer, ArticleSerializerList, TypeSourceSerializer, FilterArticleSerializer, PageSerializer, PageListSerializer, VolumeNumeroSerializer
+from .serializers import (ReviewSerializer, VolumeSerializer, NumeroSerialzer, NumeroCreateUpdateSerializer,
+                          NumeroRetrieveSerializer, ArticleSerializer, ArticleSerializerList, TypeSourceSerializer,
+                          FilterArticleSerializer, PageSerializer, PageListSerializer, VolumeNumeroSerializer,
+                          ReviewListSerializer)
 from rest_framework.permissions import IsAuthenticated
 from api_flash.permissions import IsInGroupAuthorsPermission, FalsePermissionAlways, IsAuthorOrReadOnly
 from rest_framework.decorators import action
@@ -19,6 +22,11 @@ class ReviewViewSet(ModelViewSet):
 
     def get_queryset(self):
         return Review.objects.filter(is_active=True)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'destroy', 'retrieve']:
+            return ReviewSerializer
+        return ReviewListSerializer
 
     def get_permissions(self):
         permissions = [IsOwnerReviewOrReadOnly]

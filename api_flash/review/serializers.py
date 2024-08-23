@@ -73,7 +73,10 @@ class ReviewSerializer(ModelSerializer):
             representation['author_label'] = instance.author.first_name + " " + instance.author.last_name
         return representation
     
-
+class ReviewListSerializer(ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ["id", "title"]
 
 class VolumeSerializer(ModelSerializer):
     class Meta:
@@ -87,9 +90,11 @@ class VolumeSerializer(ModelSerializer):
         year = data.get('year')
         review = data.get('review')
         fields = []
-        if (instance and Volume.objects.exclude(pk=instance.pk).filter(index=index, review=review).exists()) or (not instance and Volume.objects.filter(index=index, review=review).exists()):
+        if (instance and Volume.objects.exclude(pk=instance.pk).filter(index=index, review=review).exists()) or\
+                (not instance and Volume.objects.filter(index=index, review=review).exists()):
             fields.append('numéro du volume')
-        if (instance and Volume.objects.exclude(pk=instance.pk).filter(year=year, review=review).exists()) or (not instance and Volume.objects.filter(year=year, review=review).exists()):
+        if (instance and Volume.objects.exclude(pk=instance.pk).filter(year=year, review=review).exists()) or \
+                (not instance and Volume.objects.filter(year=year, review=review).exists()):
             fields.append('année du volume')
 
         if len(fields) > 0:

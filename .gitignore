@@ -4,3 +4,4 @@ env/
 .git/
 node_modules/
 api_flash/db.sqlite3
+api_flash/api_flash/settings.py
