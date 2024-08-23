@@ -11,13 +11,13 @@ def initial_data(apps, schema_editor):
     City = apps.get_model('config_global', 'Town')
 
     for item_country in african_countries:
-        country = Country.objects.get_or_create(
+        country, is_created = Country.objects.get_or_create(
             code=item_country['code'],
             label=item_country['label'],
             ordering=item_country['ordering'],
             nationality_label=item_country['nationality_label']
         )
-        if country.code == "CG":
+        if item_country['code'] == "CG" and is_created:
             for city in congo_cities:
                 City.objects.create(
                     code=city['code'],
@@ -38,8 +38,9 @@ def initial_data(apps, schema_editor):
     )
     # Créer des groupes si non existants
     for group_name in roles:
-        group = Group.objects.get_or_create(name=group_name)
-        user.groups.add(group)
+        group, is_created = Group.objects.get_or_create(name=group_name)
+        if is_created:
+            user.groups.add(group)
 
 class Migration(migrations.Migration):
 

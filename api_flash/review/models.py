@@ -4,7 +4,7 @@ from api_flash.exceptions import CustomValidationError
 from django.core.exceptions import ValidationError
 
 class Review(models.Model):
-    title = models.CharField(max_length=500)
+    title = models.TextField()
     logo = models.TextField(null=True, blank=True)
     editorial_slint = models.TextField()
     editorial_slint_pdf = models.TextField()
