@@ -89,7 +89,7 @@ WSGI_APPLICATION = "api_flash.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-""""""
+""""
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
@@ -101,14 +101,14 @@ DATABASES = {
 DATABASES = {  
     'default': {  
         'ENGINE':  'django.db.backends.mysql',  
-        'NAME': 'c2316147c_flash',  
-        'USER': 'c2316147c_bonheur',  
-        'PASSWORD': '3Hl7w}WUQx?e',
+        'NAME': 'c2418006c_flash',
+        'USER': 'c2418006c_bonheur',
+        'PASSWORD': 'vKrpq}2>ZQiwrnT',
         'HOST': 'localhost',  
         'PORT': '3306',  
     }
 }
-"""
+""""""
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
