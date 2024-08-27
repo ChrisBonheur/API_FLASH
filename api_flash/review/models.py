@@ -62,18 +62,16 @@ class Numero(models.Model):
 
 
 class Author(models.Model):
-    SEXE_CHOICES = [
-        ('homme', 'Homme'),
-        ('femme', 'Femme'),
-        ('autre', 'Autre'),
-    ]
     adress = models.CharField(max_length=255, null=True, blank=True)
     contact = models.CharField(max_length=30, null=True, blank=True)
-    civility = models.CharField(max_length=10, choices=SEXE_CHOICES, verbose_name="Sexe")
+    civility = models.SmallIntegerField()
     function = models.CharField(max_length=255, null=True, blank=True)
     institution = models.TextField(null=True, blank=True)
     about = models.CharField(max_length=255, null=True, blank=True)
     photo = models.TextField(null=True, blank=True)
+    email = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    first_name = models.CharField(max_length=255)
     user = models.OneToOneField(User, on_delete=models.PROTECT, related_name="author")
 
 
@@ -110,7 +108,7 @@ class Article(models.Model):
     keywords_fr = models.TextField(null=True, blank=True)
     keywords_ang = models.TextField(null=True, blank=True)
     state = models.IntegerField(choices=State.choices, default=State.INITIALISATION)
-    authors = models.ManyToManyField(User, related_name='articles')
+    authors = models.ManyToManyField(Author, related_name='articles')
     page_begin = models.IntegerField(null=True, blank=True)
     page_end = models.IntegerField(null=True, blank=True)
     doi_link = models.TextField(null=True, blank=True)

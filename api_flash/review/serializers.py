@@ -3,7 +3,6 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers
 from agent.serializers import AgentListSerializer, AgentSerializer
 from .models import Review, Volume, Numero, Author, Reference, Article, TypeSource
-from agent.models import Agent
 from api_flash.utils import get_object_or_raise, gen_matricule, set_each_first_letter_in_upper
 from api_flash.exceptions import CustomValidationError
 from django.db import IntegrityError
@@ -16,7 +15,7 @@ import json
 class AuthorSerializer(ModelSerializer):
     class Meta:
         model = Author
-        fields = "__all__"
+        fields = ["adress", "contact", "civility", "function", "institution", "about", "photo", 'email', 'last_name', 'first_name']
 
 class UserSerializer(ModelSerializer):
     contact = serializers.CharField(source='author.contact', required=False,  allow_blank=True, allow_null=True)
@@ -207,9 +206,8 @@ class ReferenceSerializer(ModelSerializer):
         return representation
 
 class ArticleSerializer(ModelSerializer):
-    authors = UserSerializer(many=True)
+    authors = AuthorSerializer(many=True)
     references = ReferenceSerializer(many=True)
-
     class Meta:
         model = Article
         fields = "__all__"
@@ -217,33 +215,31 @@ class ArticleSerializer(ModelSerializer):
             'user': {'required': False},
         }
     
-
     def create(self, validated_data):
         nesteed_authors = validated_data.pop('authors', None)
         nesteed_references = validated_data.pop('references', None)
         validated_data['user'] = self.context['request'].user
         article = Article.objects.create(**validated_data)
+        authors = []
         for data in nesteed_authors:
-            users = User.objects.filter(email=data.pop('email'))
-            if not users.exists():
-                last_id = Author.objects.last().id + 1 if Author.objects.last() else 1
-                data['username'] = gen_matricule(last_id, "AUT", length=1000)
-                data['password'] = "1234"
-                data['last_name'] = data.pop('last_name').upper()
-                data['first_name'] = set_each_first_letter_in_upper(data.pop('first_name'))
-                dataAuthor = data.pop('author')
-                user = User.objects.create_user(**data['user'])
-                data['user'] = user
-                Author.objects.create(**dataAuthor)
+            user = User.objects.filter(email=data['email'])
+            if (not user.exists()):
+                user = User.objects.create(email=data['email'], password="1234", username=data['email'])
             else:
-                user = users[0]
-            article.authors.add(user)
+                user = user[0]
+            data['user'] = user
+            author, created = Author.objects.get_or_create(**data)
+            if created:
+                authors.append(author)
+        article.authors.set(authors)
 
         if nesteed_references:
+            references = []
             for data in nesteed_references:
                 reference = Reference.objects.create(**data)
-                article.references.add(reference)
-
+                references.append(reference)
+            article.references.set(references)
+            
         return article
 
 
@@ -251,34 +247,25 @@ class ArticleSerializer(ModelSerializer):
         nesteed_authors = validated_data.pop('authors', None)
         nesteed_references = validated_data.pop('references', None)
         article = super().update(instance, validated_data)
+        authors_created  = []
         for data in nesteed_authors:
             users = User.objects.filter(email=data['email'])
-            if not users.exists():
-                last_id = User.objects.last().id + 1 if User.objects.last() else 1
-                data['username'] = gen_matricule(last_id, "AUT", length=1000)
-                data['password'] = "1234"
-                data['last_name'] = data.pop('last_name').upper()
-                data['first_name'] = set_each_first_letter_in_upper(data.pop('first_name'))
-                dataAuthor = data.pop('author')
-                user = User.objects.create_user(**data)
-                dataAuthor['user'] = user
-                Author.objects.create(**dataAuthor)
+            if users.exists():
+                data['user'] = users[0]
+                if not hasattr(User, 'author'):
+                    author = Author.objects.create(**data)
+                else:
+                    author = Author.objects.filter(user=users[0]).update(**data)
             else:
-                user = users[0]
-                if hasattr(user, 'auhtor'):
-                    dataAuthor = data.pop('author')
-                    User.objects.filter(pk=user.id).update(**data)
-                    Author.objects.filter(user=user).update(**dataAuthor)
-            article.authors.add(user)
-        
-        #remove not extisting author in new list authors
-        emails_in_nesteed = [author['email'] for author in nesteed_authors]
+                user = User.objects.create(email=data['email'], password="1234", username=data['email'])
+                data['user'] = user
+                author = Author.objects.filter(user=users[0]).update(**data)
 
-        for email_obj in article.authors.values('email'):
-            if not email_obj['email'] in emails_in_nesteed:
-                author_to_rmv = User.objects.filter(email=email_obj['email'])
-                if author_to_rmv.exists():
-                    article.authors.remove(author_to_rmv[0])
+            authors_created.append(author)
+                      
+        article.authors.set(authors_created)
+        article.save()
+    
 
         #remove all references
         for reference in article.references.all():
@@ -299,6 +286,8 @@ class ArticleSerializer(ModelSerializer):
         data['numero_volume_review_logo'] = instance.user.review.logo
         data['user_first_name'] = instance.user.first_name
         data['user_last_name'] = instance.user.last_name
+        #import pdb;pdb.set_trace()
+        #data['authors'] =  
         if hasattr(instance.user, "author") or hasattr(instance.user, "agent"):
             data['user_institution'] = instance.user.author.institution if hasattr(instance.user, "author") else instance.user.agent.institution 
         if instance.numero:
@@ -313,7 +302,7 @@ class ArticleSerializerList(ModelSerializer):
     authors_labels = serializers.ListSerializer(child=UserSerializer(), source='authors')
     class Meta:
         model = Article
-        fields = ('id', 'title_fr', 'date_ajout', 'date_accept', 'date_publication', 'numero', 'state', 'counter_download', 'authors', 'page_begin', 'page_end', 'authors_labels')
+        fields = ('id', 'title_fr','state', 'counter_download', 'page_begin', 'page_end', 'authors_labels')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -323,8 +312,11 @@ class ArticleSerializerList(ModelSerializer):
         data['numero_volume_review_logo'] = instance.user.review.logo
         data['user_first_name'] = instance.user.first_name
         data['user_last_name'] = instance.user.last_name
-        if hasattr(instance.user, "author") or hasattr(instance.user, "agent"):
-            data['user_institution'] = instance.user.author.institution if hasattr(instance.user, "author") else instance.user.agent.institution 
+        
+        author = Author.objects.filter(user__id=instance.user.id)
+        
+        if author.exists():
+            data['user_institution'] = author[0].institution
         if instance.numero:
             data['numero_index'] = instance.numero.index
             data['numero_volume_index'] = instance.numero.volume.index
