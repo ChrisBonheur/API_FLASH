@@ -47,7 +47,7 @@ class ReviewViewSet(ModelViewSet):
         #self.check_object_permissions(self.request, obj)
 
         # Retourne la réponse avec les données sérialisées
-        return Response(data)
+        return Response(Review.objects.get(id=review_id))
 
 
     def get_serializer_class(self):
@@ -75,7 +75,7 @@ class ReviewViewSet(ModelViewSet):
                 obj = cache.get(cache_name)
                 print(cache)
                 
-            return Response(obj)
+            return Response(user.review)
         except Exception as e:
             raise CustomValidationError("Vous n'avez pas encore crée une revue disponible", status.HTTP_204_NO_CONTENT)
 
