@@ -80,7 +80,7 @@ class ReviewSerializer(ModelSerializer):
         if self.context.get('request') and self.context['request'].method == "GET": 
             representation['author_label'] = instance.author.first_name + " " + instance.author.last_name
             
-        fields_to_include = ['id', 'title', 'code', 'author', 'date_created', 'last_update', 'is_active', 'eissn', 'issn', 'copyright']
+        fields_to_include = ['id', 'title', 'code', 'author', 'date_created', 'last_update', 'is_active', 'eissn', 'issn', 'copyright', 'editorial_slint']
         filtered_representation = {field: representation[field] for field in fields_to_include if field in representation}
 
         return filtered_representation
