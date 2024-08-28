@@ -10,6 +10,8 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from .models import PageContent
 import json
+from django.core.cache import cache
+from api_flash.cache_prefix import cache_review_one
 
 
 class AuthorSerializer(ModelSerializer):
@@ -60,6 +62,13 @@ class ReviewSerializer(ModelSerializer):
         extra_kwargs = {
             'author': {'required': False},
         }
+        
+    def update(self, instance, validated_data):
+        instance = super().update(instance, validated_data)
+        cache.delete(cache_review_one(instance.id))
+        serializer = ReviewSerializer(instance)
+        cache.set(cache_review_one(instance.id),serializer.data)
+        return instance
     
     def create(self, validated_data):
         user = self.context['request'].user
@@ -76,6 +85,8 @@ class ReviewListSerializer(ModelSerializer):
     class Meta:
         model = Review
         fields = ["id", "title"]
+    
+
 
 class VolumeSerializer(ModelSerializer):
     class Meta:
@@ -251,18 +262,14 @@ class ArticleSerializer(ModelSerializer):
         for data in nesteed_authors:
             users = User.objects.filter(email=data['email'])
             if users.exists():
-                data['user'] = users[0]
-                if not hasattr(User, 'author'):
-                    author = Author.objects.create(**data)
-                else:
-                    author = Author.objects.filter(user=users[0]).update(**data)
+                author, created = Author.objects.update_or_create(user=users[0], defaults=data)
             else:
                 user = User.objects.create(email=data['email'], password="1234", username=data['email'])
                 data['user'] = user
-                author = Author.objects.filter(user=users[0]).update(**data)
+                author, created = Author.objects.update_or_create(user=users[0], defaults=data)
 
             authors_created.append(author)
-                      
+            
         article.authors.set(authors_created)
         article.save()
     
@@ -299,10 +306,10 @@ class ArticleSerializer(ModelSerializer):
 
 
 class ArticleSerializerList(ModelSerializer):
-    authors_labels = serializers.ListSerializer(child=UserSerializer(), source='authors')
+    authors = AuthorSerializer(many=True)
     class Meta:
         model = Article
-        fields = ('id', 'title_fr','state', 'counter_download', 'page_begin', 'page_end', 'authors_labels')
+        fields = ('id', 'title_fr','state', 'counter_download', 'page_begin', 'page_end', 'authors')
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

@@ -8,6 +8,9 @@ from django.core.mail import send_mail
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from django.core.cache import cache
+import logging as lg
+
 
 
 def get_object_or_raise(object, pk, data_name):
@@ -100,3 +103,25 @@ def set_each_first_letter_in_upper(content):
     # Mettre en majuscule la première lettre de chaque mot
     capitalized_words = [word.strip().capitalize() for word in words]
     return ' '.join(capitalized_words)
+
+
+
+def get_or_create_cache_from_model(cache_name, model, Q_object=None):
+    """get or create cache if not exist for model filter
+    Args:
+        cache_name (str): name of cache
+        model (model class): model to filter
+        Q_object: filter model with Q object from django.db.models 
+    """
+    if cache.get(cache_name, "not exist") == "not exist":
+        try:
+            if Q_object != None:
+                cache.set(cache_name, model.objects.filter(Q_object))
+            else:
+                cache.set(cache_name, model.objects.all())
+        except NameError as e:
+            lg.critical(f"Model name not found : {e}")
+        except Exception as e:
+            lg.warning(e)
+    
+    return cache.get(cache_name, "not exist")

@@ -197,3 +197,16 @@ SIMPLE_JWT = {
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',)
 }
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'my_cache_table',  # Nom de la table qui sera utilisée pour le cache
+        'TIMEOUT': 604800,  # Durée de vie en secondes (300s = 5 minutes)
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,  # Nombre maximum d'entrées dans la table de cache
+            'CULL_FREQUENCY': 3,  # Proportion des entrées purgées quand le cache atteint sa taille maximale
+        },
+    }
+}

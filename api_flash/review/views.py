@@ -15,6 +15,9 @@ from .models import Review, Volume, Numero, Article, TypeSource, PageContent, Au
 from rest_framework.response import Response
 from agent.models import Agent
 from .permissions import IsOwnerPAgeOrReadOnly, IsOwnerReviewOrReadOnly, IsOwnerNumeroOrReadOnly, IsOwnerVolumOrReadOnly
+from rest_framework import exceptions
+from django.core.cache import cache
+from api_flash.cache_prefix import cache_review_one
 
 
 class ReviewViewSet(ModelViewSet):
@@ -22,6 +25,30 @@ class ReviewViewSet(ModelViewSet):
 
     def get_queryset(self):
         return Review.objects.filter(is_active=True)
+    
+
+    def retrieve(self, request, *args, **kwargs):
+        review_id = self.kwargs.get('pk')
+        
+        try:
+            cache_name = cache_review_one(review_id)
+            if cache.get(cache_name):
+                data = cache.get(cache_name)
+            else:
+                obj = Review.objects.get(id=review_id)
+                serializer = ReviewSerializer(obj)
+                data = serializer.data
+                cache.set(cache_name, data)
+                
+        except Review.DoesNotExist:
+            raise exceptions.NotFound("L'objet demandé est introuvable.")
+
+        # Vérifie les permissions
+        #self.check_object_permissions(self.request, obj)
+
+        # Retourne la réponse avec les données sérialisées
+        return Response(data)
+
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'destroy', 'retrieve']:
@@ -38,12 +65,20 @@ class ReviewViewSet(ModelViewSet):
     def get_for_current_user(self, request):
         user = request.user
         try:
-            serializer = ReviewSerializer(user.review, context={'request': request})
-            return Response(serializer.data)
+            cache_name = cache_review_one(user.review.id)
+            if cache.get(cache_name):
+                obj = cache.get(cache_name)
+                print(obj)
+            else:
+                serializer = ReviewSerializer(user.review, context={'request': request})
+                cache.set(cache_name, serializer.data)
+                obj = cache.get(cache_name)
+                print(cache)
+                
+            return Response(obj)
         except Exception as e:
             raise CustomValidationError("Vous n'avez pas encore crée une revue disponible", status.HTTP_204_NO_CONTENT)
-        else:
-            return reviews
+
 
 
 class VolumeViewSet(ModelViewSet):

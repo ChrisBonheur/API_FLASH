@@ -1,0 +1,1 @@
+cache_review_one = lambda id: f"review_id{id}"
