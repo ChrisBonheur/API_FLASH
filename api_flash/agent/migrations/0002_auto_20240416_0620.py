@@ -26,7 +26,7 @@ def initial_data(apps, schema_editor):
                     country=country
                 )
 
-    user = User.objects.create_superuser(username="bonheur", email="bonheurmafoundou@gmail.com", password="1234")
+    user = User.objects.create_superuser(username="BONHEUR", email="bonheurmafoundou@gmail.com", password="1234")
     Agent.objects.create(
         birth_city=City.objects.get(code="PN"),
         cityArea="Moungali",

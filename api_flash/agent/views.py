@@ -26,6 +26,7 @@ from rest_framework.decorators import action
 import asyncio
 from api_flash.enum import type_user
 from .data import roles
+from django.contrib.auth.models import Group
 
 class AgentViewsSet(ModelViewSet):
 
@@ -75,9 +76,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             return Response({"detail": "Information de connexion non valide !"}, status=status.HTTP_400_BAD_REQUEST)
         if response.status_code == status.HTTP_200_OK:
             user = User.objects.get(username=request.data['username'])
-            user_chosed = request.data.get('type_user')
             found_agent = Agent.objects.filter(user=user)
-            if user_chosed == type_user.AGENT.value and found_agent.exists():
+            
+            if found_agent.exists():
                 agent = found_agent[0]
                 serializer = AgentSerializer(agent, context={"request": request})
                 response.data['user'] = serializer.data
@@ -89,7 +90,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 otp = generate_number(6)
                 response.data['OTP'] = otp
                 response.data['academic_years'] = AcademicSerializer(agent.user.years, many=True).data
-                if agent.user.years.count() > 0:
+                
+                currentRoleOfUser = list(user.groups.values_list('name', flat=True))
+                if agent.user.years.count() > 0 or roles[0] in currentRoleOfUser or roles[1] in currentRoleOfUser:
                     asyncio.run(sendemail("TOKEN", f"Connexion sur la plateforme FLASH-APPLICATION,\nVotre token d'authenfication est {otp}", [agent.user.email]))
                     print(otp)
             else:

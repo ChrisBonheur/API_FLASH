@@ -89,7 +89,6 @@ class ReviewListSerializer(ModelSerializer):
     class Meta:
         model = Review
         fields = ["id", "title"]
-    
 
 
 class VolumeSerializer(ModelSerializer):
