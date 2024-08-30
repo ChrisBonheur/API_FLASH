@@ -115,9 +115,7 @@ class ReviewTokenObtainPairView(TokenObtainPairView):
             user = User.objects.get(username=request.data['username'])
             user_chosed = request.data.get('type_user')
             found_agent = Agent.objects.filter(user=user)
-
-            autor_role = roles[type_user.AUTEUR.value]
-            if found_agent.exists() and  user.groups.filter(name=autor_role).exists():
+            if found_agent.exists() and  user.groups.filter(name='auteur').exists():
                 agent = found_agent[0]
                 serializer = AgentSerializer(agent, context={"request": request})
                 response.data['user'] = serializer.data
