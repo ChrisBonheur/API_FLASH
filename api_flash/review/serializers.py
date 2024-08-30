@@ -382,7 +382,7 @@ class PageSerializer(serializers.ModelSerializer):
 class PageListSerializer(ModelSerializer):
     class Meta:
         model = PageContent
-        exclude = ('content', 'pdf_file')
+        fields = ('title', 'id', 'is_active')
 
 
 class VolumeNumeroSerializer(ModelSerializer):

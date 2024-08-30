@@ -224,7 +224,7 @@ class PagesViewSet(ModelViewSet):
     def get_by_review(self, request, pk):
         review = get_object_or_raise(Review, pk=pk, data_name="Revue")
         pages = review.pages.all()
-        serializer = PageSerializer(pages, many=True)
+        serializer = PageListSerializer(pages, many=True)
         return Response(serializer.data)
     
     
