@@ -17,7 +17,7 @@ from api_flash.cache_prefix import cache_review_one
 class AuthorSerializer(ModelSerializer):
     class Meta:
         model = Author
-        fields = ["adress", "contact", "civility", "function", "institution", "about", "photo", 'email', 'last_name', 'first_name']
+        fields = ["adress", "contact", "civility", "function", "institution", "about", "photo", 'email', 'last_name', 'first_name', 'id']
 
 class UserSerializer(ModelSerializer):
     contact = serializers.CharField(source='author.contact', required=False,  allow_blank=True, allow_null=True)
@@ -80,7 +80,7 @@ class ReviewSerializer(ModelSerializer):
         if self.context.get('request') and self.context['request'].method == "GET": 
             representation['author_label'] = instance.author.first_name + " " + instance.author.last_name
             
-        fields_to_include = ['id', 'title', 'code', 'author', 'date_created', 'last_update', 'is_active', 'eissn', 'issn', 'copyright', 'editorial_slint']
+        fields_to_include = ['id', 'title', 'code', 'author', 'date_created', 'last_update', 'is_active', 'eissn', 'issn', 'copyright', 'editorial_slint', 'logo']
         filtered_representation = {field: representation[field] for field in fields_to_include if field in representation}
 
         return filtered_representation

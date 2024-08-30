@@ -94,7 +94,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 currentRoleOfUser = list(user.groups.values_list('name', flat=True))
                 if agent.user.years.count() > 0 or roles[0] in currentRoleOfUser or roles[1] in currentRoleOfUser:
                     asyncio.run(sendemail("TOKEN", f"Connexion sur la plateforme FLASH-APPLICATION,\nVotre token d'authenfication est {otp}", [agent.user.email]))
-                    print(otp)
             else:
                 raise CustomValidationError("Information de connexion non valide !", 400)
         return response

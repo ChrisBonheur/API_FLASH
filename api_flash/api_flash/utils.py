@@ -64,10 +64,10 @@ def generate_number(num_digits):
 
 async def sendemail(subject, message, email_list):
     # Paramètres du serveur SMTP
-    smtp_server = 'mail.zandosoft.online'
+    smtp_server = 'mail.umng-flash.com'
     smtp_port = 587 # Port SMTP (généralement 587 pour TLS ou 465 pour SSL)
-    smtp_username = 'flashapp@zandosoft.online'
-    smtp_password = "x}W2t}B}ESD'PFT"
+    smtp_username = 'flash@umng-flash.com'
+    smtp_password = "e@f25Bc76"
 
     # Adresse e-mail de l'expéditeur
     from_email = smtp_username

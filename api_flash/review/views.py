@@ -69,12 +69,10 @@ class ReviewViewSet(ModelViewSet):
             cache_name = cache_review_one(user.review.id)
             if cache.get(cache_name):
                 obj = cache.get(cache_name)
-                print(obj)
             else:
                 serializer = ReviewSerializer(user.review, context={'request': request})
                 cache.set(cache_name, serializer.data)
                 obj = cache.get(cache_name)
-                print(cache)
             serializer = ReviewSerializer(user.review, context={'request': request})
             return Response(serializer.data)
         except Exception as e:
@@ -231,5 +229,11 @@ class PagesViewSet(ModelViewSet):
 class AuthorViewset(ModelViewSet):
     serializer_class = AuthorSerializer
     queryset = Author.objects.all()
-    permission_classes = [IsAuthorOrReadOnly]
+    
+    @action(detail=True, methods=['GET'])
+    def get_author_by_email(self, request, pk):
+        author = get_object_or_raise(Author, pk=pk, data_name="Auteur")
+        serializer = AuthorSerializer(author, many=True)
+        return Response(serializer.data)
+    
     

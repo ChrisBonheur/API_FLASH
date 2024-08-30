@@ -157,13 +157,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 #Send email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'mail.zandosoft.online'  # Adresse du serveur SMTP
+EMAIL_HOST = 'mail.umng-flash.com'  # Adresse du serveur SMTP
 EMAIL_PORT = 587  # Port du serveur SMTP
 EMAIL_USE_TLS = True  # Utilisation de TLS pour sécuriser la connexion SMTP
 
 # Si votre serveur SMTP nécessite une authentification
-EMAIL_HOST_USER = 'flashapp@zandosoft.online'  # Votre adresse e-mail
-EMAIL_HOST_PASSWORD = "x}W2t}B}ESD'PFT"  # Votre mot de passe
+EMAIL_HOST_USER = 'flash@umng-flash.com'  # Votre adresse e-mail
+EMAIL_HOST_PASSWORD = "e@f25Bc76"  # Votre mot de passe
 
 
 SWAGGER_SETTINGS = {

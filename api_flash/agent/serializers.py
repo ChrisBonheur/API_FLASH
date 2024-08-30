@@ -77,8 +77,9 @@ class AgentSerializer(ModelSerializer):
         validated_data['user']['first_name'] = set_each_first_letter_in_upper(validated_data['user']['first_name'])
         user = User.objects.create_user(**validated_data['user'])
         
+        
         #send email
-        asyncio.run(sendemail("Mot de passe", f"Information de connexion FLASH-APPLICATION \nlogin: {matricule}\nMot de passe: {password}", [validated_data['user']['email']]))
+        asyncio.run(sendemail("Bienvenue sur la Plateforme Révolutionnaire de l’Université Flash", f"Information de connexion FLASH-APPLICATION \nlogin: {matricule}\nMot de passe: {password}", [validated_data['user']['email']]))
 
         groups_data = validated_data.pop('group', [])
         groups = Group.objects.filter(name__in=groups_data)
