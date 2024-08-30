@@ -106,9 +106,6 @@ DATABASES = {
         'PASSWORD': 'vKrpq}2>ZQiwrnT',
         'HOST': 'localhost',  
         'PORT': '3306',  
-    },
-    'OPTIONS': {
-        'sql_mode': 'STRICT_ALL_TABLES',
     }
 }
 
