@@ -382,7 +382,7 @@ class PageSerializer(serializers.ModelSerializer):
 class PageListSerializer(ModelSerializer):
     class Meta:
         model = PageContent
-        fields = ('title', 'id', 'is_active')
+        fields = ('title', 'id', 'is_active', 'review')
 
 
 class VolumeNumeroSerializer(ModelSerializer):
