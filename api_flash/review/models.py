@@ -116,6 +116,9 @@ class Article(models.Model):
     counter_download = models.IntegerField(default=0)
     image_cover = models.TextField(null=True, blank=True)
     references = models.ManyToManyField(Reference, blank=True, related_name="articles")
+    
+    class Meta:
+        ordering = ('page_begin',)
 
 
 class PageContent(models.Model):
